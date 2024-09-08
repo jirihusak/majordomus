@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<connections>
+		<connection name="1NP" portName="COM9"></connection>
+<!--
+		<connection name="2NP" portName="/dev/ttyUSB1"></connection>
+-->
+
+	</connections>
+	
+	<devices>
+		<device connection="1NP" name="detskyPokoj1" type="RoomIO"></device>
+		<device connection="1NP" name="test" type="RoomSens"></device>
+<!--
+		<device connection="2NP" name="test2" type="RoomSens"></device>
+-->
+	</devices>
+	
+	<MQTT>
+		<broker address="tcp://192.168.1.201:1883" username="jirka" passwd="1234" topic="myHome/"></broker>
+<!--
+		<broker address="tcp://test.mosquitto.org:188" username="rw" passwd="readwrite" topic="myTest1234/"></broker>
+-->
+	</MQTT>
+	
+
+</config>

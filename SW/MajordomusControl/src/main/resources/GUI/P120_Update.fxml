@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<HBox fx:id="update" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="509.0" prefWidth="779.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.P120_UpdateController">
+   <children>
+      <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0">
+         <children>
+            <GridPane hgap="10.0" layoutX="43.0" layoutY="-45.0" vgap="3.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+               <columnConstraints>
+                  <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" maxWidth="250.0" minWidth="100.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="624.0" minWidth="10.0" prefWidth="545.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="624.0" minWidth="10.0" prefWidth="545.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="250.0" minWidth="100.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="250.0" minWidth="100.0" prefWidth="100.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                  <RowConstraints maxHeight="1.7976931348623157E308" minHeight="200.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <children>
+                  <Label alignment="TOP_CENTER" text="Select File" GridPane.rowIndex="2" />
+                  <TextField fx:id="updateFilePath" prefHeight="25.0" prefWidth="407.0" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2" />
+                  <Button fx:id="updateOpenFile" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Open" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
+                  <Label text="Select Device" />
+                  <ComboBox fx:id="updateSelectConnection" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="471.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
+                  <Button fx:id="updateStart" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Start" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
+                  <Button fx:id="updateStop" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Stop" GridPane.columnIndex="4" GridPane.rowIndex="3" />
+                  <Separator prefWidth="200.0" GridPane.columnSpan="5" GridPane.rowIndex="1" />
+                  <Label text="Progress" GridPane.rowIndex="4" />
+                  <ProgressBar fx:id="updateProgress" maxWidth="1.7976931348623157E308" prefHeight="18.0" prefWidth="542.0" progress="0.0" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="4" />
+                  <Separator prefWidth="200.0" GridPane.columnSpan="5" GridPane.rowIndex="5" />
+                  <Label fx:id="updateProgressText" text="0 %" GridPane.columnIndex="4" GridPane.rowIndex="4" />
+                  <Label text="Log" GridPane.rowIndex="8" />
+                  <Button fx:id="updateClearLog" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Clear log" GridPane.columnIndex="4" GridPane.rowIndex="8" />
+                  <TextArea fx:id="updateLog" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="5" GridPane.rowIndex="9" />
+                  <ComboBox fx:id="updateSelectDevice" maxWidth="1.7976931348623157E308" prefWidth="150.0" GridPane.columnIndex="2" />
+                  <Label text="Change id name" GridPane.rowIndex="6" />
+                  <TextField fx:id="newIdText" prefHeight="25.0" prefWidth="253.0" promptText="new id" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="6" />
+                  <Button fx:id="changeIdBtn" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Change" GridPane.columnIndex="4" GridPane.rowIndex="6" />
+                  <Separator prefWidth="200.0" GridPane.columnSpan="5" GridPane.rowIndex="7" />
+               </children>
+            </GridPane>
+         </children>
+      </AnchorPane>
+   </children>
+</HBox>
