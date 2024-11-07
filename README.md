@@ -1,5 +1,9 @@
 # Majordomus - Open source system for Smart Home
 Majordomus is open hardware and open source system not only for smart home. Majordomus HW devices communicating via RS-485 interface with a gateway (for example RPi). This gateway makes an MQTT interface for commonly used SW applications for Smart Home (for example node-red).
+
+# Website
+www.majordomus.tech
+
 See diagram below. Majordomus can do the blue parts from the diagram. Enjoy Majordomus in your project!
 
 ![Nepojmenované](https://github.com/jirihusak/majordomus/assets/33901383/3a26aa7d-3c42-4a49-821c-4de11687ebca)
