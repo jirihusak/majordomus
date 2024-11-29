@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  *
  * @author husak
@@ -68,6 +69,10 @@ public class ConfXmlObject {
         public String passwd;
         @XmlAttribute(name = "topic")
         public String topic;
+        @XmlAttribute(name = "selfsigned")
+        public String selfsigned;
+        @XmlAttribute(name = "cert")
+        public String cert;
     }
     
     public List<MQTTBroker> getMQTTBroker() {return brokers;}

@@ -68,6 +68,10 @@ public class P120_UpdateController implements Initializable {
     private Button changeIdBtn;
     @FXML
     private TextField newIdText;
+    @FXML
+    private Button changeId5050Btn;
+    @FXML
+    private Button restartBtn;
     
     public P120_UpdateController()
     {
@@ -82,6 +86,8 @@ public class P120_UpdateController implements Initializable {
         updateStart.setOnAction(this::startUpdate);
         updateStop.setOnAction(this::stopUpdate);
         changeIdBtn.setOnAction(this::changeId);
+        restartBtn.setOnAction(this::restartDevice);
+        changeId5050Btn.setOnAction(this::change5050Id);
         updateOpenFile.setOnAction(this::updateChooseFile);
         
         // add all devices
@@ -149,4 +155,22 @@ public class P120_UpdateController implements Initializable {
         SerialCommunication.getInstance().sendCommand(updateSelectConnection.getSelectionModel().getSelectedItem(), msg);
     }
     
+    public void change5050Id(ActionEvent event)
+    {
+        String msg = "id:" + updateSelectDevice.getSelectionModel().getSelectedItem() + ",msg:config,newId5050:" + newIdText.getText();
+        char crc = SerialCom.SerialCommunication.getInstance().crc8(0, msg.toCharArray(), msg.length());
+        msg += String.format(",crc:%02x\r\n", (int)crc);
+        System.out.println(msg);
+        SerialCommunication.getInstance().sendCommand(updateSelectConnection.getSelectionModel().getSelectedItem(), msg);
+    }
+    
+    public void restartDevice(ActionEvent event)
+    {
+        String msg = "id:" + updateSelectDevice.getSelectionModel().getSelectedItem() + ",msg:config,cmd:reset";
+        char crc = SerialCom.SerialCommunication.getInstance().crc8(0, msg.toCharArray(), msg.length());
+        msg += String.format(",crc:%02x\r\n", (int)crc);
+        System.out.println(msg);
+        SerialCommunication.getInstance().sendCommand(updateSelectConnection.getSelectionModel().getSelectedItem(), msg);
+    }
+     
 }

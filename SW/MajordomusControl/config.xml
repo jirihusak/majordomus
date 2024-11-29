@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
+
+	<!--
+		<connections>
+		This section defines the physical connections used for communicating with the devices.
+		Each connection element includes a unique name and the port to which the device is connected.
+		Here, we have one connection named "1NP" that uses the port "/dev/ttyUSB3".
+		-->
 	<connections>
 		<connection name="1NP" portName="COM9"></connection>
 <!--
@@ -8,6 +15,15 @@
 
 	</connections>
 	
+
+	<!--
+		<devices>
+		This section specifies the devices connected to each physical connection defined earlier.
+		Each device element includes the connection it is associated with, the name of the device,
+		and its type. In this case, two devices are connected using "1NP": 
+		- "detskyPokojRS" of type "RoomSens" (which might refer to a Room Sensor).
+		- "detskyPokoj1" of type "RoomIO".
+		-->
 	<devices>
 		<device connection="1NP" name="detskyPokoj1" type="RoomIO"></device>
 		<device connection="1NP" name="test" type="RoomSens"></device>
@@ -15,11 +31,53 @@
 		<device connection="2NP" name="test2" type="RoomSens"></device>
 -->
 	</devices>
-	
+
+	<!--
+		<MQTT>
+		This section defines the MQTT broker configuration for communication. It allows secure
+		or insecure connections to an MQTT broker for controlling or monitoring devices.
+		-->	
 	<MQTT>
+
+		<!--
+			<broker address="ssl://192.168.1.201:8883" username="majordomus" passwd="secretpassword" topic="majordomus/" selfsigned="true" cert="ca.crt">
+			
+			This broker configuration enables SSL-secured communication with a specific MQTT broker 
+			using the address "192.168.1.201" on port 8883. 
+			
+			- "username" and "passwd" fields provide the authentication credentials.
+			- "topic" specifies the base topic under which MQTT messages will be published or subscribed.
+			- "selfsigned" set to "true" indicates that the broker is using a self-signed SSL certificate.
+			- "cert" specifies the file path of the CA certificate (in this case, "ca.crt") that is used to verify the broker's self-signed certificate.
+		-->
+
+		<!--
+			Alternative example 1: SSL connection with a trusted certificate authority
+			
+			<broker address="ssl://example.com:8883" username="majordomus" passwd="secretpassword" topic="majordomus/"></broker>
+			
+			This broker configuration provides SSL-secured communication to "example.com" on port 8883.
+			In this case, there is no "selfsigned" attribute, meaning the SSL certificate will be verified
+			using a standard trusted certificate authority. This method provides a more standard approach 
+			to secure communication when certificates are signed by a trusted CA.
+		-->
+
+		<!--
+			Alternative example 2: Unencrypted connection
+			
+			<broker address="tcp://192.168.1.201:1883" username="majordomus" passwd="secretpassword" topic="majordomus/"></broker>
+			
+			This broker configuration provides an unencrypted connection over TCP to the broker at
+			"192.168.1.201" on port 1883. While this is simple, it does not provide any encryption for
+			the data being transmitted, making it potentially vulnerable to interception or tampering.
+			Use this option only if security is not a major concern.
+		-->
 		<broker address="tcp://192.168.1.201:1883" username="jirka" passwd="1234" topic="myHome/"></broker>
 <!--
-		<broker address="tcp://test.mosquitto.org:188" username="rw" passwd="readwrite" topic="myTest1234/"></broker>
+		<broker address="tcp://test.mosquitto.org:1883" username="rw" passwd="readwrite" topic="myTest1234/"></broker>
+		<broker address="ssl://192.168.1.201:8883" username="majordomus" passwd="secretpassword" topic="majordomus/" selfsigned="true" cert="ca.crt">
+		<broker address="ssl://example.com:8883" username="majordomus" passwd="secretpassword" topic="majordomus/"></broker>
+		
 -->
 	</MQTT>
 	

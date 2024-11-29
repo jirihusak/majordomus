@@ -21,7 +21,7 @@ public class RoomSens extends DeviceGeneric {
     public RoomSens(String connectionName, String name) {
         super(connectionName, name);
         
-        cmdList.addAll(Arrays.asList("dac0", "dac1", "do", "beep", "reqT", "light"));
+        cmdList.addAll(Arrays.asList("dac0", "dac1", "do0", "do1", "do2", "do3", "beep", "reqT", "light"));
         for(String s:cmdList)
         {
             propertyMap.put(s, new DeviceProperty());
@@ -38,10 +38,26 @@ public class RoomSens extends DeviceGeneric {
         try {
 
             switch (key) {
-                case "t0" ->
-                    parsedData = Float.parseFloat(data);
+                case "t" ->
+                    parsedData = Float.parseFloat(data) / 10;
                 case "t1" ->
-                    parsedData = Float.parseFloat(data);
+                    parsedData = Float.parseFloat(data) / 10;
+                case "t2" ->
+                    parsedData = Float.parseFloat(data) / 10;
+                case "t3" ->
+                    parsedData = Float.parseFloat(data)/ 10;
+                case "t4" ->
+                    parsedData = Float.parseFloat(data)/ 10;
+                case "rh" ->
+                    parsedData = Float.parseFloat(data)/ 10;
+                case "voc" ->
+                    parsedData = Integer.parseInt(data);
+                case "lux" ->
+                    parsedData = Integer.parseInt(data);
+                case "mo" ->
+                    parsedData = Integer.parseInt(data);
+                case "nl" ->
+                    parsedData = Integer.parseInt(data);
                 case "di" ->
                     parsedData = Integer.valueOf(data);
                 case "btn" ->
@@ -58,6 +74,8 @@ public class RoomSens extends DeviceGeneric {
                     parsedData = Float.parseFloat(data);
                 case "pwrOut" ->
                     parsedData = Float.parseFloat(data);
+                case "newReqT" ->
+                    parsedData = Float.parseFloat(data) / 10;
 
             }
 
@@ -124,7 +142,7 @@ public class RoomSens extends DeviceGeneric {
         }
         
         
-        msg += "do:" + getDataByKey("do") + ",";
+        msg += "do:" + serializeDO() + ",";
         msg += "dac0:" + getDataByKey("dac0") + ",";
         msg += "dac1:" + getDataByKey("dac1") + ",";
         msg += "light:" + getDataByKey("light") + ",";
@@ -149,7 +167,13 @@ public class RoomSens extends DeviceGeneric {
         //System.out.println("Cmd:" + key + ":" + value);
         
         switch (key) {
-            case "do" ->
+            case "do0" ->
+                propertyMap.get(key).data = Integer.valueOf(value);
+            case "do1" ->
+                propertyMap.get(key).data = Integer.valueOf(value);
+            case "do2" ->
+                propertyMap.get(key).data = Integer.valueOf(value);
+            case "do3" ->
                 propertyMap.get(key).data = Integer.valueOf(value);
             case "dac0" ->
                 propertyMap.get(key).data = Float.valueOf(value);
@@ -162,5 +186,17 @@ public class RoomSens extends DeviceGeneric {
             case "light" ->
                 propertyMap.get(key).data = Integer.valueOf(value);
         }
+    }
+    
+    // serialize do0 - do9 to one bit array
+    private String serializeDO()
+    {
+        int result = 0;
+        
+        for (int i = 0; i < 4; i++) {
+            result |= (Integer.parseInt(getDataByKey("do"+i)) == 0) ? 0 : (1 << i);
+        }
+        
+        return String.valueOf(result);
     }
 }

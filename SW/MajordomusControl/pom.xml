@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cz.openmajordomus</groupId>
     <artifactId>MajordomusControl</artifactId>
-    <version>0.3</version>
+    <version>0.3.1</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>15</maven.compiler.source>
-        <maven.compiler.target>15</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <exec.mainClass>cz.majordomusinterface.MajordomusInterface</exec.mainClass>
     </properties>
     <name>MajordomusControl</name>
@@ -47,7 +47,7 @@
         <dependency>
             <groupId>org.eclipse.paho</groupId>
             <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.5</version>
         </dependency>
     </dependencies>
     <build>

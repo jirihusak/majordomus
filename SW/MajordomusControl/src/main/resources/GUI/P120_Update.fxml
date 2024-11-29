@@ -39,7 +39,7 @@
                </rowConstraints>
                <children>
                   <Label alignment="TOP_CENTER" text="Select File" GridPane.rowIndex="2" />
-                  <TextField fx:id="updateFilePath" prefHeight="25.0" prefWidth="407.0" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2" />
+                  <TextField fx:id="updateFilePath" prefHeight="25.0" prefWidth="425.0" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2" />
                   <Button fx:id="updateOpenFile" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Open" GridPane.columnIndex="4" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" />
                   <Label text="Select Device" />
                   <ComboBox fx:id="updateSelectConnection" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="471.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
@@ -55,9 +55,11 @@
                   <TextArea fx:id="updateLog" prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="5" GridPane.rowIndex="9" />
                   <ComboBox fx:id="updateSelectDevice" maxWidth="1.7976931348623157E308" prefWidth="150.0" GridPane.columnIndex="2" />
                   <Label text="Change id name" GridPane.rowIndex="6" />
-                  <TextField fx:id="newIdText" prefHeight="25.0" prefWidth="253.0" promptText="new id" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="6" />
-                  <Button fx:id="changeIdBtn" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Change" GridPane.columnIndex="4" GridPane.rowIndex="6" />
+                  <TextField fx:id="newIdText" prefHeight="25.0" prefWidth="253.0" promptText="new id" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="6" />
+                  <Button fx:id="changeIdBtn" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Change" GridPane.columnIndex="3" GridPane.rowIndex="6" />
                   <Separator prefWidth="200.0" GridPane.columnSpan="5" GridPane.rowIndex="7" />
+                  <Button fx:id="changeId5050Btn" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Change 50:50" GridPane.columnIndex="4" GridPane.rowIndex="6" />
+                  <Button fx:id="restartBtn" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Restart" GridPane.columnIndex="4" />
                </children>
             </GridPane>
          </children>

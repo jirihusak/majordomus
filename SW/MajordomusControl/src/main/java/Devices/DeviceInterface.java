@@ -45,6 +45,9 @@ public class DeviceInterface {
                 case "RoomSens" -> {
                     deviceMap.put(d.name, new RoomSens(d.connection, d.name));
                 }
+                case "TempOutBoard" -> {
+                    deviceMap.put(d.name, new TempOutBoard(d.connection, d.name));
+                }
                 default ->
                     System.out.println("Unknown device type");
             }
@@ -104,7 +107,8 @@ public class DeviceInterface {
             return;
         }
 
-        deviceMap.get(topicLevels[1]).cmdToDevice(topicLevels[2], data);
+        if(deviceMap.containsKey(topicLevels[1]))
+            deviceMap.get(topicLevels[1]).cmdToDevice(topicLevels[2], data);
     }
 
 }

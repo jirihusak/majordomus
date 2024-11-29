@@ -14,16 +14,15 @@ import java.util.List;
  *
  * @author husak
  */
-public class RoomIO extends DeviceGeneric {
-    
+public class TempOutBoard extends DeviceGeneric {
+
     private LocalDateTime lastStatusReq = LocalDateTime.MIN;
 
-    public RoomIO(String connectionName, String name) {
+    public TempOutBoard(String connectionName, String name) {
         super(connectionName, name);
-        
-        cmdList.addAll(Arrays.asList("dac0", "dac1", "do0","do1", "do2", "do3", "do4", "do5", "do6", "do7"));
-        for(String s:cmdList)
-        {
+
+        cmdList.addAll(Arrays.asList("ro", "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7", "do8", "do9"));
+        for (String s : cmdList) {
             propertyMap.put(s, new DeviceProperty());
         }
     }
@@ -39,17 +38,21 @@ public class RoomIO extends DeviceGeneric {
 
             switch (key) {
                 case "t0" ->
-                    parsedData = Float.parseFloat(data);
+                    parsedData = Float.parseFloat(data) / 10.0;
                 case "t1" ->
-                    parsedData = Float.parseFloat(data);
-                case "di" ->
-                    parsedData = Integer.valueOf(data);
-                case "btn" ->
-                    parsedData = Integer.valueOf(data);
-                case "adc0" ->
-                    parsedData = Float.parseFloat(data);
-                case "adc1" ->
-                    parsedData = Float.parseFloat(data);
+                    parsedData = Float.parseFloat(data) / 10.0;
+                case "t2" ->
+                    parsedData = Float.parseFloat(data) / 10.0;
+                case "t3" ->
+                    parsedData = Float.parseFloat(data) / 10.0;
+                case "t4" ->
+                    parsedData = Float.parseFloat(data) / 10.0;
+                case "t5" ->
+                    parsedData = Float.parseFloat(data) / 10.0;
+                case "t6" ->
+                    parsedData = Float.parseFloat(data) / 10.0;
+                case "t7" ->
+                    parsedData = Float.parseFloat(data) / 10.0;
                 case "type" ->
                     parsedData = data;
                 case "version" ->
@@ -110,37 +113,35 @@ public class RoomIO extends DeviceGeneric {
 
     @Override
     public String sendMsg() {
+
         LocalDateTime now1 = LocalDateTime.now();
-        
+
         String msg = "id:" + name;
-        
-        if(Duration.between(lastStatusReq, now1).toSeconds() > 10)
-        {
+
+        if (Duration.between(lastStatusReq, now1).toSeconds() > 10) {
             msg += ",msg:status,";
             lastStatusReq = now1;
+        } else {
+            msg += ",msg:data,";
         }
-        else {
-            msg += ",msg:data,";    
-        }
-        
-        
+
         msg += "do:" + serializeDO() + ",";
 
-        msg += "dac0:" + getDataByKey("dac0") + ",";
-        msg += "dac1:" + getDataByKey("dac1");
-        
+        msg += "ro:" + getDataByKey("ro");
+
         char crc = SerialCom.SerialCommunication.getInstance().crc8(0, msg.toCharArray(), msg.length());
 
-        msg += String.format(",crc:%02x\r\n", (int)crc);
+        msg += String.format(",crc:%02x\r\n", (int) crc);
+
         return msg;
     }
 
     @Override
     public synchronized void cmdToDevice(String key, String value) {
-        
-        //System.out.println("Cmd:" + key + ":" + value);
+
+        System.out.println("----- Temp Out Board Cmd:" + key + ":" + value);
         GuiModels.getInstance().updateDeviceMap(name, key, value);
-        
+
         switch (key) {
             case "do0" ->
                 propertyMap.get(key).data = Integer.valueOf(value);
@@ -158,10 +159,12 @@ public class RoomIO extends DeviceGeneric {
                 propertyMap.get(key).data = Integer.valueOf(value);
             case "do7" ->
                 propertyMap.get(key).data = Integer.valueOf(value);
-            case "dac0" ->
-                propertyMap.get(key).data = Float.valueOf(value);
-            case "dac1" ->
-                propertyMap.get(key).data = Float.valueOf(value);
+            case "do8" ->
+                propertyMap.get(key).data = Integer.valueOf(value);
+            case "do9" ->
+                propertyMap.get(key).data = Integer.valueOf(value);
+            case "ro" ->
+                propertyMap.get(key).data = Integer.valueOf(value);
         }
     }
     
@@ -170,7 +173,7 @@ public class RoomIO extends DeviceGeneric {
     {
         int result = 0;
         
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 10; i++) {
             result |= (Integer.parseInt(getDataByKey("do"+i)) == 0) ? 0 : (1 << i);
         }
         
