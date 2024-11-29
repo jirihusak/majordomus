@@ -13,7 +13,7 @@
 #include <pic18.h>
 
 #define BOARD_TYPE              "RoomSens"
-#define APP_VERSION             "0.1"
+#define APP_VERSION             "0.3"
 #define BUILD_DATE              __DATE__ 
 
 

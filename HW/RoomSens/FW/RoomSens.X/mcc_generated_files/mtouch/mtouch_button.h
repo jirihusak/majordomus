@@ -103,6 +103,7 @@
     void                        MTOUCH_Button_Initialize    (enum mtouch_button_names button);
     void                        MTOUCH_Button_InitializeAll (void);
     void                        MTOUCH_Button_ServiceAll    (void);
+    void                        MTOUCH_Button_Tick          (void);
     mtouch_button_deviation_t   MTOUCH_Button_Deviation_Get (enum mtouch_button_names button);
     mtouch_button_reading_t     MTOUCH_Button_Reading_Get   (enum mtouch_button_names button);
     mtouch_button_reading_t     MTOUCH_Button_Baseline_Get  (enum mtouch_button_names button);

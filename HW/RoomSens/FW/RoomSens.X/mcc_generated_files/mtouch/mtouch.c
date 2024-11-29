@@ -127,6 +127,7 @@ bool MTOUCH_Service_Mainloop(void)
  */
 void MTOUCH_Tick(void)
 {
+    MTOUCH_Button_Tick();
 }
 
 /*

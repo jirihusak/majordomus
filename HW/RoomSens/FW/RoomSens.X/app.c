@@ -68,6 +68,7 @@ void app_Init(){
     
       
     // init display
+    PWM6_LoadDutyValue(0);
     gui_Init();
 
     //init lux meter
@@ -205,7 +206,7 @@ void app_Task(){
        
         SYSTEM_CPU_HIGH_SPEED;
         digital_io_task();
-        if(!microphone_is_sampling()){
+        if(!microphone_is_sampling() && !piezo_is_active()){
             gui_Task(&button_control);
         }
         temp_DS18B20_Task();

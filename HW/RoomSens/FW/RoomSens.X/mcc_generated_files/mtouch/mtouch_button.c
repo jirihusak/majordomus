@@ -123,6 +123,7 @@ static void                     Button_Reading_Update_Helper(mtouch_button_t* bu
 static void                     Button_Baseline_Initialize  (mtouch_button_t* button);
 static void                     Button_Baseline_Update      (mtouch_button_t* button);
 static mtouch_button_reading_t  Button_Baseline_Get_helper  (enum mtouch_button_names button);
+static void                     Button_Tick_helper          (mtouch_button_t* button);
 
 static void                     Button_State_Initializing   (mtouch_button_t* button);
 static void                     Button_State_NotPressed     (mtouch_button_t* button);
@@ -268,9 +269,14 @@ static void Button_State_NotPressed(mtouch_button_t* button)
 
 static void Button_State_Pressed(mtouch_button_t* button)
 {
+    /* Timeout check */
+    if ((button->counter) >= MTOUCH_BUTTON_PRESSTIMEOUT)
+    {
+        MTOUCH_Button_Initialize(button->name);
+    }
     
     /* Threshold check */
-    if ((button->deviation) < (mtouch_button_deviation_t)((button->threshold)-((button->threshold) >> MTOUCH_BUTTON_COMMON_HYSTERESIS)))
+    else if ((button->deviation) < (mtouch_button_deviation_t)((button->threshold)- ((button->threshold) >> MTOUCH_BUTTON_COMMON_HYSTERESIS)))
     {
         button->state   = MTOUCH_BUTTON_STATE_releaseDebounce;
         button->counter = (mtouch_button_statecounter_t)0;
@@ -312,6 +318,31 @@ static void Button_State_ReleaseDebounce(mtouch_button_t* button)
     {
         button->state   = MTOUCH_BUTTON_STATE_pressed;
         button->counter = (mtouch_button_statecounter_t)0;
+    }
+}
+/*
+ * =======================================================================
+ *  MTOUCH_Button_Tick
+ * =======================================================================
+ */
+void MTOUCH_Button_Tick(void)
+{
+    uint8_t i;
+    for (i = 0; i < MTOUCH_BUTTONS; i++)
+    {
+        Button_Tick_helper(&mtouch_button[i]);
+    }
+}
+static void Button_Tick_helper(mtouch_button_t* button)
+{
+    /* Only pressed state counter is based on real time */
+    if ((button->state) == MTOUCH_BUTTON_STATE_pressed)
+    {
+        (button->counter)++;
+        if (button->counter == (mtouch_button_statecounter_t)0)
+        {
+            button->counter = (mtouch_button_statecounter_t)0xFFFF;
+        }
     }
 }
 

@@ -123,18 +123,27 @@ void lcd_NHDC12832_Init()
 	GLCD_DESELECT();
 
 	/* Send reset pulse to LCD */
+    __delay_ms(5);
 	glcd_reset();
-	__delay_ms(5);
+	__delay_ms(10);
 
 	/* Begin sending data for initialisation sequence */
 	glcd_command(0xa0); /* ADC select in normal mode */
 	glcd_command(0xae); /* Display OFF */
+    glcd_command(0xad);	// Static indicator ON
+	glcd_command(0x00);	// Static indicator register, not Blinking
 	glcd_command(0xc8); /* Common output mode select: reverse direction (last 3 bits are ignored) */
 	glcd_command(0xa2); /* LCD bias set at 1/9 */
 	glcd_command(0x2f); /* Power control set to operating mode: 7 */
 	glcd_command(0x21); /* Internal resistor ratio, set to: 1 */
 	glcd_set_contrast(35); /* Set contrast, value experimentally determined, can set to 6-bit value, 0 to 63 */
-	glcd_command(0xaf); /* Display on */
+    glcd_command(0xa6); /* normal mode - not inverted */
+    glcd_command(0xa4); /* normal displej - not all point on*/
+    glcd_command(0x40); /* offset to 0 */
+    glcd_command(0xb0); /* page addr 0*/
+    glcd_command(0x17); /* column addr 128px MSB*/
+    glcd_command(0x0F); /* column addr 128px LSB*/
+	glcd_command(0xaf); /* Display on */    
 	
 	lcd_clear_now();
 
@@ -259,7 +268,6 @@ void glcd_reset(void)
     
     // SW reset
     glcd_command(ST7565R_RESET);
-    __delay_ms(10);
 }
 
 ////////////////////////////////////////////////////////////////////
