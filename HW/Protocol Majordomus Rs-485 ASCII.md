@@ -53,8 +53,8 @@ Main computer sends config message to device `test` to restart
 
 > If you don't know device `id`, you can replace `deviceName` with string `all`. So the message is for all devices on the bus. In this case respond all devices for the request. To prevent bus colision on RS-485 every device add random delay before start sending response. This fetature is not recomended for normal operation.
 
-## RoomIO
 ### Status message
+    id:device_id,msg:status,...
 | From RoomIO| Note|
 |--|--|
 | type | type of device (RoomIO) |
@@ -62,31 +62,82 @@ Main computer sends config message to device `test` to restart
 | pwr | Power voltage in volts |
 | pwrOut | Power voltage in volts after fuse for digital outputs and inputs |
 ### Config message
+    id:device_id,msg:config,...
 | To RoomIO| Note|
 |--|--|
 | newId | Change id to new string (max 32 characters) |
 | newId5050| The same as newID, but the commands will executed with 50:50 propability (depends on random generator on device). This command can be helpful when we have two same id on the bus|
 | reset| Restart the device |
 
+## RoomIO
 ### Data message
+
+    id:device_id,msg:data,...
+
 | From RoomIO| Note|
 |--|--|
 | adc0  | Analog input voltage |
 | adc1  | Analog input voltage |
 | di  | Digital inputs bit array |
 | btn | Digital buttons bit array. Sends only once rising edges. |
-| t0| Temperature in °C |
-| t1| Temperature in °C |
+| t0| Temperature in °C from 1-Wire sensor|
+| t1| Temperature in °C from 1-Wire sensor|
 
 | To RoomIO| note|
 |--|--|
 | dac0 | Set Digital to Analog voltage |
 | dac1 | Set Digital to Analog voltage |
-| do | Set digital outputs bit array |
+| do | Set digital outputs bit array (bit 0 = digital output 0, etc.. )|
 
 ## RoomSensor
+### Data message
+
+    id:device_id,msg:data,...
+
+| From RoomSensor| Note|
+|--|--|
+| adc0  | Analog input voltage |
+| adc1  | Analog input voltage |
+| di  | Digital inputs bit array |
+| btn | Digital buttons bit array. Sends only once rising edges. |
+| t0| Temperature in °C from front cover|
+| t1| Temperature in °C from humidity sensor|
+| t2| Temperature in °C from 1-Wire sensor|
+| t3| Temperature in °C from 1-Wire sensor|
+| rh| Relative humidity in % |
+| mo| Motion detector PIR [0/1] |
+| voc| Air Quality VOC [0-500] |
+| lux| Light intensity in lux |
+| nl| Noise level in db |
+| newReqT| New Temperature set request from display - send once when user confirm |
+
+| To RoomSensor| note|
+|--|--|
+| dac0 | Set Digital to Analog voltage |
+| dac1 | Set Digital to Analog voltage |
+| do | Set digital outputs bit array (bit 0 = digital output 0, etc.. )|
+| reqT| Actual temperature set displayed on LCD |
+| beep| Start beeping [0-4] |
+| light| Control LED light [0-1] |
 
 ## TinySensor
+### Data message
+
+    id:device_id,msg:data,...
+
+| From TinySensor| Note|
+|--|--|
+| di  | Digital inputs bit array |
+| btn | Digital buttons bit array. Sends only once rising edges. |
+| t0| Temperature in °C |
+| rh| Relative humidity in % |
+| t1| Temperature in °C from 1-Wire sensor|
+| t2| Temperature in °C from 1-Wire sensor|
+
+
+| To RoomSensor| note|
+|--|--|
+| do | Set digital outputs bit array (bit 0 = digital output 0, etc.. )|
 
 ### CRC calculation
 
@@ -125,4 +176,5 @@ Main computer sends config message to device `test` to restart
 	        crc = crc8_table[crc ^ *data++];
 	    return crc;
 	}
+
 
