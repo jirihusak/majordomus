@@ -1,0 +1,11 @@
+{
+    "name" : "node-red-contrib-majordomus",
+    "description": "Smart Home nodes not only for Majordomus platform.",
+    "keywords": [ "majordomus,smart home,home automation,light,heating,energy" ],
+    "version": "0.1",
+    "node-red" : {
+        "nodes": {
+            "scheduler": "nodes/scheduler/scheduler.js"
+        }
+    }
+}

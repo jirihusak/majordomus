@@ -1,0 +1,324 @@
+<script type="text/javascript">
+    RED.nodes.registerType('scheduler', {
+        category: 'majordomus',
+        color: '#66CCFF',
+        defaults: {
+            name: { value: '' },
+            scheduleList: { value: [], required: false },
+        },
+        inputs: 0,
+        outputs: 1,
+        icon: "font-awesome/fa-calendar",
+        label: function () {
+            return this.name || "scheduler";
+        },
+        oneditprepare: function () {
+            const listContainer = $("#scheduler-list");
+
+            listContainer.editableList({
+                addButton: true, // Adds a "Add" button
+                removable: true, // Allows removal of items
+                sortable: true,  // Allows reordering
+                height: '300px',
+                sortItems: function () {
+                    updateScheduleTable();
+                },
+                removeItem: function () {
+                    updateScheduleTable();
+                },
+                addItem: function (container, index, data) {
+
+                    // Initialize data if not present
+                    data.text = data.text || "Monday";
+                    data.startTime = data.startTime || "00:00";
+                    data.endTime = data.endTime || "23:59";
+                    data.color = data.color || `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+                    data.type = data.type || "num";
+                    data.value = data.value || "" ;
+
+
+
+                    // Create the content of each list item
+                    const row = $('<div style="display: flex; gap: 10px; align-items: center; flex-wrap: nowrap;">').appendTo(container);
+
+                    // Text input
+                    $('<select style="flex: 1;">')
+                        .append('<option value="Monday">Monday</option>')
+                        .append('<option value="Tuesday">Tuesday</option>')
+                        .append('<option value="Wednesday">Wednesday</option>')
+                        .append('<option value="Thursday">Thursday</option>')
+                        .append('<option value="Friday">Friday</option>')
+                        .append('<option value="Saturday">Saturday</option>')
+                        .append('<option value="Sunday">Sunday</option>')
+                        .append('<option value="Monday-Friday">Monday-Friday</option>')
+                        .append('<option value="Saturday-Sunday">Saturday-Sunday</option>')
+                        .append('<option value="Monday-Sunday">Monday-Sunday</option>')
+                        .val(data.text)
+                        .appendTo(row)
+                        .change(function () {
+                            data.text = $(this).val();
+                            updateScheduleTable();
+                            RED.nodes.dirty(true);
+                        });
+
+                    // Time selection inputs
+                    $('<input type="time" style="width: auto;">')
+                        .val(data.startTime)
+                        .appendTo(row)
+                        .change(function () {
+                            data.startTime = $(this).val();
+                            updateScheduleTable();
+                            RED.nodes.dirty(true);
+                        });
+
+                    $('<span">-</span>').appendTo(row);
+
+                    $('<input type="time" style="width: auto;">')
+                        .val(data.endTime)
+                        .appendTo(row)
+                        .change(function () {
+                            data.endTime = $(this).val();
+                            updateScheduleTable();
+                            RED.nodes.dirty(true);
+                        });
+
+                    // Color picker
+                    $('<input type="color" style="position: relative; width: 50px;">')
+                        .val(data.color)
+                        .appendTo(row)
+                        .change(function () {
+                            data.color = $(this).val();
+                            updateScheduleTable();
+                            RED.nodes.dirty(true);
+                        });
+
+                    // Typed input for value and type
+                    $('<input type="text" id="node-input-example1" style="width: auto;">')
+                        .val(data.value)
+                        .appendTo(row)
+                        .typedInput({
+                            type: data.type || 'num',
+                            types: ['num', 'str', 'bool']
+                        })
+                        .typedInput('type', data.type) // Nastaví typ při načtení
+                        .typedInput('value', data.value) // Nastaví hodnotu při načtení
+                        .change(function () {
+                            data.type = $(this).typedInput('type');
+                            data.value = $(this).typedInput('value');
+                            updateScheduleTable();
+                            RED.nodes.dirty(true);
+                        });
+
+                    updateScheduleTable();
+                }
+            });
+
+            const currentList = this.scheduleList || []; // Ujistíme se, že pracujeme s celým seznamem
+
+            if (currentList.length > 0) {
+                currentList.forEach(item => {
+                    listContainer.editableList('addItem', item); // Přidání každé položky do seznamu
+                });
+            } else {
+                console.warn("No items to load into scheduler list.");
+            }
+        },
+        oneditsave: function () {
+            // Inicializace pole pro uložení dat
+            const items = [];
+            $("#scheduler-list").editableList('items').each(function () {
+                const data = $(this).data('data'); // Získání dat pro každou položku
+                if (data) {
+                    items.push(data); // Přidání do pole
+                } else {
+                    console.warn("Item data is undefined or invalid", $(this));
+                }
+            });
+            this.scheduleList = items; // Uložení dat do konfigurace nodu
+        },
+        oneditcancel: function () {
+            RED.nodes.dirty(false); // Reset dirty state if canceled
+        },
+    });
+
+
+    function updateScheduleTable() {
+        const tableBody = document.getElementById('table-body');
+
+        // Reset all cells to default (white background)
+        const rows = tableBody.children;
+        for (let row of rows) {
+            const cells = row.children;
+            for (let i = 1; i < cells.length; i++) {
+                cells[i].style.background = 'none';
+            }
+        }
+
+        // Apply schedule rules
+        const scheduleItems = $('#scheduler-list').editableList('items');
+        scheduleItems.each(function () {
+            const data = $(this).data('data');
+            if (!data || !data.startTime || !data.endTime || !data.color) return;
+
+            const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+            const startMinutes = parseTime(data.startTime);
+            const endMinutes = parseTime(data.endTime);
+
+            days.forEach((day, dayIndex) => {
+                if (data.text === day || (data.text === "Monday-Friday" && dayIndex < 5) || (data.text === "Saturday-Sunday" && dayIndex >= 5) || data.text === "Monday-Sunday") {
+                    const row = tableBody.children[dayIndex];
+                    if (!row) {
+                        return;
+                    }
+
+                    const cells = row.children;
+                    for (let i = 1; i < cells.length; i++) {
+                        const cellStartMinutes = (i - 1) * 60;
+                        const cellEndMinutes = i * 60;
+
+                        if (startMinutes < cellEndMinutes && endMinutes > cellStartMinutes) {
+                            const gradientStart = Math.max(0, (startMinutes - cellStartMinutes) / (cellEndMinutes - cellStartMinutes) * 100);
+                            const gradientEnd = Math.min(100, (endMinutes - cellStartMinutes) / (cellEndMinutes - cellStartMinutes) * 100);
+
+                            cells[i].style.background = `linear-gradient(to right, transparent ${gradientStart}%, ${data.color} ${gradientStart}%, ${data.color} ${gradientEnd}%, transparent ${gradientEnd}%)`;
+                        }
+                    }
+                }
+            });
+        });
+    }
+    
+
+
+    function parseTime(time) {
+        if (!time || typeof time !== 'string') {
+            console.error("Invalid time format:", time);
+            return 0; // Vrátíme výchozí hodnotu 0 minut
+        }
+        const [hours, minutes] = time.split(":").map(Number);
+        return (hours || 0) * 60 + (minutes || 0);
+    }
+</script>
+
+<script type="text/html" data-template-name="scheduler">
+    <div class="form-row">
+        <label for="node-input-name" style="width: 100%;">
+            Name
+        </label>
+        <input type="text" id="node-input-name" style="width: 100%;" placeholder="Enter node name">
+    </div>
+    <div class="form-row">
+        <label for="scheduler-list" style="width: 100%;">
+            Rules list
+        </label>
+        <ol id="scheduler-list" style="min-height: 150px; height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;"></ol>
+    </div>
+    <div class="form-row">
+        <label for="schedule-preview" style="width: 100%;">
+            Week Schedule Preview
+        </label>
+        <table id="schedule-table" style="width: 100%; border-collapse: collapse; border: 1px solid lightgray; table-layout: fixed;">
+            <thead>
+                <tr id="table-header">
+                    <th style="border: 1px solid lightgray; width: 150px;">Day / Hour</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+            </tbody>
+        </table>
+        
+        <script>
+            // Generate column headers
+             headerRow = document.getElementById('table-header');
+            for (let hour = 0; hour < 24; hour += 1) {
+                const th = document.createElement('th');
+                th.style.border = '1px solid lightgray';
+                th.textContent = `${hour}`;
+                headerRow.appendChild(th);
+            }
+
+            // Generate rows for days
+            tableBody = document.getElementById('table-body');
+            days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+            days.forEach(day => {
+                const row = document.createElement('tr');
+
+                // Add day name
+                const dayCell = document.createElement('td');
+                dayCell.style.border = '1px solid lightgray';
+                dayCell.textContent = day;
+                row.appendChild(dayCell);
+
+                // Add time cells
+                for (let hour = 0; hour < 24; hour += 1) {
+                    const cell = document.createElement('td');
+                    cell.style.border = '1px solid lightgray';
+                    row.appendChild(cell);
+                }
+
+                tableBody.appendChild(row);
+            });
+        </script>
+
+</div>
+</script>
+
+
+<script type="text/html" data-help-name="scheduler">
+    <div class="form-row">
+        <label>Scheduler Node Help</label>
+        <p>The Scheduler node allows you to configure time-based rules to control your application.</p>
+        <h3>Features:</h3>
+        <ul>
+            <li>Define rules for specific days or day ranges.</li>
+            <li>Set start and end times for each rule.</li>
+            <li>Assign a value to output during active periods.</li>
+        </ul>
+
+        <h3>Configuration Options:</h3>
+        <dl>
+            <dt><b>Name</b></dt>
+            <dd>Specify a unique name for the node.</dd>
+
+            <dt><b>Rules List</b></dt>
+            <dd>Manage a list of time-based rules:</dd>
+            <ul>
+                <li><b>Day Range:</b> Select specific days or day ranges (e.g., Monday-Sunday).</li>
+                <li><b>Start Time:</b> Define when the rule becomes active.</li>
+                <li><b>End Time:</b> Define when the rule becomes inactive.</li>
+                <li><b>Value:</b> Set the value to output during the active period.</li>
+                <li><b>Color:</b> Assign a color to visualize the rule in the preview table.</li>
+            </ul>
+        </dl>
+
+        <h3>Outputs:</h3>
+        <ul>
+            <li>The node outputs a value defined in the rules when the current time falls within a rule's active period.</li>
+        </ul>
+
+        <h3>Examples:</h3>
+        <p>Example 1: Workday Schedule</p>
+        <ul>
+            <li>Day Range: Monday-Friday</li>
+            <li>Time: 09:00 - 17:00</li>
+            <li>Output Value: "Working Hours"</li>
+        </ul>
+
+        <p>Example 2: Weekend Relaxation</p>
+        <ul>
+            <li>Day Range: Saturday-Sunday</li>
+            <li>Time: 10:00 - 22:00</li>
+            <li>Output Value: "Relaxing"</li>
+        </ul>
+
+        <h3>Status Indicators:</h3>
+        <ul>
+            <li><b>Green dot:</b> Indicates an active rule is being executed.</li>
+            <li><b>Gray ring:</b> No active rules match the current time.</li>
+        </ul>
+
+        <h3>More Information:</h3>
+        <p>Visit the <a href="https://github.com/jirihusak/majordomus" target="_blank">project's GitHub repository</a> for more details and updates.</p>
+    </div>
+</script>
