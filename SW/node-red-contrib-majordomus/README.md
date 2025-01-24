@@ -12,7 +12,7 @@ The Scheduler node allows you to configure time-based rules to control your appl
 - Assign a value to output during active periods.
 - Visualize rules in a weekly schedule preview.
 
-![Scheduler](images/scheduler.png)
+![Scheduler](SW/node-red-contrib-majordomus/images/scheduler.png)
 
 ## Configuration Options
 
