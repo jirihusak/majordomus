@@ -1,4 +1,4 @@
-# Majorodmus for node-red
+# Majordomus for node-red
 
 #### Scheduler
 
@@ -13,6 +13,7 @@ The Scheduler node allows you to configure time-based rules to control your appl
 - Visualize rules in a weekly schedule preview.
 
 ![Scheduler](SW/node-red-contrib-majordomus/images/scheduler.png)
+![Scheduler](images/scheduler.png)
 
 ## Configuration Options
 
@@ -47,5 +48,5 @@ The node outputs a value defined in the rules when the current time falls within
 - **Gray ring**: No active rules match the current time.
 
 ## More Information
-Visit the [project's GitHub repository](https://github.com/jirihusak/majordomus) for more details and updates.
+Visit the [project's GitHub repository](https://github.com/jirihusak/majordomus) or (https://www.majordomus.tech)
 

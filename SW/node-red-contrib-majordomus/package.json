@@ -10,9 +10,10 @@
         "smart-home",
         "home-automation"
     ],
-    "version": "0.1.4",
+    "version": "0.1.6",
     "author": "Jiri Husak",
-    "homepage": "majordomus.tech",
+    "license": "GPLv3",
+    "homepage": "https://www.majordomus.tech",
     "repository": {
         "type": "git",
         "url": "https://github.com/jirihusak/majordomus"
