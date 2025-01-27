@@ -29,6 +29,7 @@ This application makes the bridge between RS-485 bus and MQTT. The application h
 
 - Scheduler
   Node for week based scheduling. You can set the rules with priorities and the node will send value from current rule.
+  
 ![obrazek](https://github.com/user-attachments/assets/eec50598-5b8e-41da-854a-8ed3e9546968)
 
 
