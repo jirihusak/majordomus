@@ -1,0 +1,316 @@
+(kicad_sch
+	(version 20231120)
+	(generator "eeschema")
+	(generator_version "8.0")
+	(uuid "39f6a29b-973f-4b6e-a1cb-3dcd9df291ad")
+	(paper "A4")
+	(lib_symbols)
+	(wire
+		(pts
+			(xy 142.875 69.85) (xy 153.035 69.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1ee86b3b-2128-4400-b338-4400a8630987")
+	)
+	(wire
+		(pts
+			(xy 202.565 82.55) (xy 202.565 129.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "45597883-9417-40d8-9903-46579559d683")
+	)
+	(wire
+		(pts
+			(xy 142.875 67.31) (xy 153.035 67.31)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8efa7b62-e43b-4ddd-877e-a2ed131be4a9")
+	)
+	(wire
+		(pts
+			(xy 142.875 64.77) (xy 153.035 64.77)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a7e18eb9-f553-47bf-9db1-95a063242342")
+	)
+	(wire
+		(pts
+			(xy 198.755 82.55) (xy 198.755 129.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e5d889df-1257-4d6d-8edb-6f43e3209d1c")
+	)
+	(sheet
+		(at 153.035 63.5)
+		(size 58.42 19.05)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "26ec27e4-d777-4f35-98df-b92fd6293df7")
+		(property "Sheetname" "RS485"
+			(at 153.035 62.7884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "RS485_NOISO.kicad_sch"
+			(at 153.035 83.1346 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "RS485_B" input
+			(at 202.565 82.55 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "937a1b8d-975c-4831-b370-c18e3927142b")
+		)
+		(pin "RS485_A" input
+			(at 198.755 82.55 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "98f60e71-3bb5-4be7-ab05-024371c20a3e")
+		)
+		(pin "RS485_TX_ENABLE" input
+			(at 153.035 64.77 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "6b65738c-1584-4ab7-815e-dabbee83e843")
+		)
+		(pin "RS485_RX" input
+			(at 153.035 69.85 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "4112d646-4af2-4ec0-ba85-fa620cd2e073")
+		)
+		(pin "RS485_TX" input
+			(at 153.035 67.31 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "0cf0fc28-a044-42d6-989a-6b07e7ddc98b")
+		)
+		(instances
+			(project "TinySensor_001_MCU"
+				(path "/39f6a29b-973f-4b6e-a1cb-3dcd9df291ad"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 90.17 17.78)
+		(size 52.705 64.77)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "6e014fae-58b4-41cc-80e2-86be739bd9bb")
+		(property "Sheetname" "MCU_PIC18"
+			(at 90.17 17.0684 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "MCU_PIC18.kicad_sch"
+			(at 90.17 83.1346 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(pin "RS485_TX_ENABLE" input
+			(at 142.875 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "3a192f39-4eb7-4bf9-8e93-fa3882ce442f")
+		)
+		(pin "RS485_TX" input
+			(at 142.875 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "f9dff493-4d71-4dba-9964-9d20c8453b60")
+		)
+		(pin "RS485_RX" input
+			(at 142.875 67.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "6acc22cc-7b01-47fb-90d2-5877c3de0851")
+		)
+		(instances
+			(project "TinySensor_001_MCU"
+				(path "/39f6a29b-973f-4b6e-a1cb-3dcd9df291ad"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 49.24 129.54)
+		(size 161.38 27.94)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "af02d003-2b0f-4978-8184-4be8fa740f0e")
+		(property "Sheetname" "Connectors"
+			(at 48.5284 157.48 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "Connectors.kicad_sch"
+			(at 211.2046 157.48 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "RS485-A" input
+			(at 198.755 129.54 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "64b9e712-1843-4e6f-b4ae-9438ff6a49dc")
+		)
+		(pin "RS485-B" input
+			(at 202.565 129.54 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "aafd9d43-7f2c-471b-b93b-ccc02ab39046")
+		)
+		(instances
+			(project "TinySensor_001_MCU"
+				(path "/39f6a29b-973f-4b6e-a1cb-3dcd9df291ad"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 22.86 17.78)
+		(size 48.133 65.405)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "dde8778c-8e59-40c2-9295-c9e95a94fbd0")
+		(property "Sheetname" "Power"
+			(at 22.86 17.0684 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "PWR.kicad_sch"
+			(at 22.86 83.7696 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "TinySensor_001_MCU"
+				(path "/39f6a29b-973f-4b6e-a1cb-3dcd9df291ad"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)
