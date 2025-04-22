@@ -10,7 +10,7 @@
         "smart-home",
         "home-automation"
     ],
-    "version": "0.1.6",
+    "version": "0.1.7",
     "author": "Jiri Husak",
     "license": "GPLv3",
     "homepage": "https://www.majordomus.tech",
@@ -20,7 +20,8 @@
     },
     "node-red" : {
         "nodes": {
-            "scheduler": "nodes/scheduler/scheduler.js"
+            "scheduler": "nodes/scheduler/scheduler.js",
+            "light": "nodes/lighting-control/light.js"
         }
     }
 }

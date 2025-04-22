@@ -1,0 +1,156 @@
+<script type="text/javascript">
+    RED.nodes.registerType('light', {
+        category: 'majordomus',
+        color: '#FFCC66',
+        defaults: {
+            name: { value: '', required: true },
+            typeLight: { value: 'onoff', required: true },
+            rampTime: { value: 1000 },
+            colorTemperature: { value: 2700 }, // Default for CCT Light
+            autoOnMotion: { value: 'false' }, // Auto turn on with motion
+            autoOnNight: { value: 'false' }, // Auto turn on only at night
+            nightThreshold: { value: 10 }, // Threshold in lux for night detection
+            autoOffNoMotion: { value: 'false' }, // Auto turn off when no motion detected
+            offDelay: { value: 5 } // Delay in minutes before turning off
+        },
+        inputs: 1,
+        outputs: 1, // Default to 1 output
+        outputLabels: function() {
+            switch (this.typeLight) {
+                case "dimmable":
+                    return ["Light State", "Intensity"];
+                case "cct":
+                    return ["Light State", "Intensity", "Color Temperature"];
+                case "rgb":
+                    return ["Color"];
+                default:
+                    return ["Light State"];
+            }
+        },
+        icon: "font-awesome/fa-lightbulb-o",
+        label: function () {
+            return this.name || "light";
+        },
+        oneditprepare: function () {
+            let node = this;
+            $("#node-input-name").val(node.name);
+            $("#node-input-type").val(node.typeLight);
+            $("#node-input-rampTime").val(node.rampTime);
+            $("#node-input-colorTemperature").val(node.colorTemperature);
+            $("#node-input-autoOnMotion").typedInput({ default: "bool", types: ["bool", "flow", "global", "msg"] }).typedInput("value", node.autoOnMotion);
+            $("#node-input-autoOnNight").val(node.autoOnNight);
+            $("#node-input-nightThreshold").val(node.nightThreshold);
+            $("#node-input-autoOffNoMotion").val(node.autoOffNoMotion);
+            $("#node-input-offDelay").val(node.offDelay);
+            
+            function toggleFields() {
+                $("#node-input-nightThreshold").toggle($("#node-input-autoOnNight").val() === "true");
+                $("#node-input-offDelay").toggle($("#node-input-autoOffNoMotion").val() === "true");
+                $(".rampTime-row").toggle($("#node-input-type").val() === "dimmable" || $("#node-input-type").val() === "cct");
+            }
+            
+            function updateOutputs() {
+                var selectedType = $("#node-input-type").val();
+                if (selectedType === "dimmable") {
+                    node.outputs = 2;
+                    node.outputLabels = ["Light State", "Intensity"];
+                } else if (selectedType === "cct") {
+                    node.outputs = 3;
+                    node.outputLabels = ["Light State", "Intensity", "Color Temperature"];
+                } else if (selectedType === "rgb") {
+                    node.outputs = 1;
+                    node.outputLabels = ["Color"];
+                } else {
+                    node.outputs = 1;
+                    node.outputLabels = ["Light State"];
+                }
+                $("#node-input-outputs").val(node.outputs);
+            }
+            
+            $("#node-input-autoOnNight").on("change", toggleFields);
+            $("#node-input-autoOffNoMotion").on("change", toggleFields);
+            $("#node-input-type").on("change", function() {
+                toggleFields();
+                updateOutputs();
+            });
+            
+            toggleFields();
+            updateOutputs();
+        },
+        oneditsave: function () {
+            this.name = $("#node-input-name").val();
+            this.typeLight = $("#node-input-type").val();
+            this.rampTime = parseInt($("#node-input-rampTime").val(), 10) || 0;
+            this.colorTemperature = parseInt($("#node-input-colorTemperature").val(), 10) || 2700;
+            this.autoOnMotion = $("#node-input-autoOnMotion").val();
+            this.autoOnNight = $("#node-input-autoOnNight").val();
+            this.nightThreshold = parseInt($("#node-input-nightThreshold").val(), 10) || 10;
+            this.autoOffNoMotion = $("#node-input-autoOffNoMotion").val();
+            this.offDelay = parseInt($("#node-input-offDelay").val(), 10) || 5;
+            
+            // Ensure outputs update when saving
+            if (this.typeLight === "dimmable" || this.typeLight === "cct") {
+                this.outputs = this.typeLight === "dimmable" ? 2 : 3;
+                this.outputLabels = this.typeLight === "dimmable" ? ["Light State", "Intensity"] : ["Light State", "Intensity", "Color Temperature"];
+            } else if (this.typeLight === "rgb") {
+                this.outputs = 1;
+                this.outputLabels = ["Color"];
+            } else {
+                this.outputs = 1;
+                this.outputLabels = ["Light State"];
+            }
+        }
+    });
+</script>
+
+
+<script type="text/html" data-template-name="light">
+    <div class="form-row">
+        <label for="node-input-name">
+            <i class="fa fa-tag"></i> Name
+        </label>
+        <input type="text" id="node-input-name" placeholder="Enter node name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-type">
+            <i class="fa fa-lightbulb-o"></i> Type
+        </label>
+        <select id="node-input-type" style="width:70%">
+            <option value="onoff">Light ON/OFF</option>
+            <option value="dimmable">Dimmable light</option>
+            <option value="cct">CCT Light</option>
+            <option value="rgb">RGB Light</option>
+        </select>
+    </div>
+    <div class="form-row rampTime-row" style="display: none;">
+        <label for="node-input-rampTime">
+            <i class="fa fa-clock-o"></i> Ramp Time (ms)
+        </label>
+        <input type="number" id="node-input-rampTime" min="0" placeholder="Enter ramp time">
+    </div>
+    <div class="form-row">
+        <label for="node-input-autoOnMotion">
+            <i class="fa fa-user"></i> Auto On with Motion
+        </label>
+        <input type="text" id="node-input-autoOnMotion" style="width: 70%" >
+    </div>
+    <div class="form-row">
+        <label for="node-input-autoOnNight">
+            <i class="fa fa-moon-o"></i>Auto On Only at Night</label>
+            <select id="node-input-autoOnNight" style="width: 35%" >
+                <option value="true">True</option>
+                <option value="false">False</option>
+            </select>
+            <input type="number" id="node-input-nightThreshold" min="0" placeholder="Night Threshold (lux)" style="margin-left: 2%; width: 33%">
+    </div>
+    <div class="form-row">
+        <label for="node-input-autoOffNoMotion">
+            <i class="fa fa-clock-o"></i>Auto Off Without Motion
+        </label>
+            <select id="node-input-autoOffNoMotion" style="width: 35%">
+                <option value="true">True</option>
+                <option value="false">False</option>
+            </select>
+            <input type="number" id="node-input-offDelay" min="1" placeholder="Off Delay (min)" style="margin-left: 2%; width: 33%">
+    </div>
+</script>
