@@ -1,12 +1,24 @@
 # Majordomus for node-red
 
-#### Scheduler
+## Light
 
-# Scheduler Node
+The Light node allows control your light with buttons, presense senor and luxmeter. The node supports ON/OFF or dimmable light.
+
+### Features
+- Control with buttons (toggle output)
+- Automatic turn on the light on motion
+- Automatic on only in night based on luxmeter
+- Automatic turn off the light after no presense timeout
+- Fade in and fade out for dimmable lights
+
+![Scheduler](SW/node-red-contrib-majordomus/images/light.png)
+![Scheduler](images/light.png)
+
+## Scheduler
 
 The Scheduler node allows you to configure time-based rules to control your application.
 
-## Features
+### Features
 - Define rules for specific days or day ranges.
 - Set start and end times for each rule.
 - Assign a value to output during active periods.
@@ -15,7 +27,7 @@ The Scheduler node allows you to configure time-based rules to control your appl
 ![Scheduler](SW/node-red-contrib-majordomus/images/scheduler.png)
 ![Scheduler](images/scheduler.png)
 
-## Configuration Options
+### Configuration Options
 
 ### Name
 Specify a unique name for the node.
@@ -28,10 +40,10 @@ Manage a list of time-based rules:
 - **Value**: Set the value to output during the active period.
 - **Color**: Assign a color to visualize the rule in the preview table.
 
-## Outputs
+### Outputs
 The node outputs a value defined in the rules when the current time falls within a rule's active period.
 
-## Examples
+##### Examples
 
 ### Workday Schedule
 - **Day Range**: Monday-Friday
@@ -43,7 +55,7 @@ The node outputs a value defined in the rules when the current time falls within
 - **Time**: 10:00 - 22:00
 - **Output Value**: "Relaxing"
 
-## Status Indicators
+### Status Indicators
 - **Green dot**: Indicates an active rule is being executed.
 - **Gray ring**: No active rules match the current time.
 

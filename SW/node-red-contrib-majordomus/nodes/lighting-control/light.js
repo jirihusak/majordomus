@@ -14,9 +14,11 @@ module.exports = function(RED) {
 
         node.context().set('state', 0)
         node.context().set('intensity', 0)
+        node.context().set('presense', 0)
         
         let timeout = null;
-        let roomLightIntensity = 0
+        node.roomLightIntensity = 0
+        node.outputMaxIntensity = 100
 
         function rampIntensity(target, duration, send) {
             let stepTime = 100; // Interval step time in ms
@@ -68,6 +70,25 @@ module.exports = function(RED) {
             }, stepTime);
         }
 
+        function checkOnNoPresense(send) {
+            if (node.autoOffNoMotion) {
+
+                if (node.context().get('presense') == 1) {
+                    if (node.timeout) {
+                        clearTimeout(node.timeout);
+                        node.timeout = null;
+                    }
+                } else if (node.context().get('presense') == 0) {
+                    if (!node.timeout) {
+                        node.timeout = setTimeout(() => {
+                            rampIntensity(0, node.rampTime, send);
+                            node.timeout = null;
+                        }, node.offDelay * 1000);
+                    }
+                }
+            }
+        }
+
         node.on('input', function(msg, send, done) {
             let input = msg.payload;
             let state = node.context().get('state')
@@ -79,37 +100,44 @@ module.exports = function(RED) {
                     if(input == 1) {
                         if(state == 1)
                         {
-                            rampIntensity(0, this.rampTime, send);
+                            rampIntensity(0, node.rampTime, send);
                         }
                         else {
-                            rampIntensity(100, this.rampTime, send);
+                            rampIntensity(node.outputMaxIntensity, node.rampTime, send);
                         }
+                        checkOnNoPresense(send)
                     }
+                    break;
+                case 'setState': // set status
+                    if(input == 1) {
+                        rampIntensity(node.outputMaxIntensity, node.rampTime, send);
+                    }
+                    else {
+                        rampIntensity(0, this.rampTime, send);
+                    }
+                    checkOnNoPresense(send)
+                    break;
+                case 'setIntensity': // set status
+                    node.outputMaxIntensity = input
+                    // update intensity if light is on
+                    if(node.context().get('state') == 1)
+                        {
+                            rampIntensity(node.outputMaxIntensity, 0, send);
+                        }
+    
                     break;
                 case 'presense': // Motion detected
+                    node.context().set('presense', input)
                     if (input === 1 && node.autoOnMotion) {
-                        if (!node.autoOnNight || (node.autoOnNight && node.nightThreshold > roomLightIntensity)) {
-                            rampIntensity(100, this.rampTime, send);
+                        if (!node.autoOnNight || (node.autoOnNight && node.nightThreshold > node.roomLightIntensity)) {
+                            rampIntensity(node.outputMaxIntensity, node.rampTime, send);
                         }
                     }
-                    if (node.autoOffNoMotion) {
-                        if (input === 1) {
-                            if (timeout) {
-                                clearTimeout(timeout);
-                                timeout = null;
-                            }
-                        } else if (input === 0) {
-                            if (!timeout) {
-                                timeout = setTimeout(() => {
-                                    rampIntensity(0, this.rampTime, send);
-                                }, node.offDelay * 1000);
-                            }
-                        }
-                    }
+                    checkOnNoPresense(send)    
+
                     break;
                 case 'lightIntensity': // Adjust intensity based on light level
-                    roomLightIntensity = input;
-
+                    node.roomLightIntensity = input;
                     break;
                 default:
                     node.warn(`Unknown topic: ${msg.topic}`);
