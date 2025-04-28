@@ -18,7 +18,8 @@ module.exports = function (RED) {
             let currentValue = null;
             let currentRule = null
         
-            node.scheduleList.forEach(item => {
+            for (let i = 0; i < node.scheduleList.length; i++) {
+                const item = node.scheduleList[i];
                 if (
                     item.text === currentDay ||
                     (item.text === "Monday-Friday" && ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].includes(currentDay)) ||
@@ -27,21 +28,22 @@ module.exports = function (RED) {
                 ) {
                     const startMinutes = parseTime(item.startTime);
                     const endMinutes = parseTime(item.endTime);
-        
+            
                     if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
-                        if(item.type === 'bool') {
+                        if (item.type === 'bool') {
                             currentValue = item.value === 'true';
                         }
-                        else if (item.type === 'num'){
+                        else if (item.type === 'num') {
                             currentValue = parseFloat(item.value);
                         }
                         else {
                             currentValue = item.value;
                         }
-                        currentRule = item.text + " (" + item.startTime + " - " + item.endTime + ")"
+                        currentRule = item.text + " (" + item.startTime + " - " + item.endTime + ")";
+                        break;
                     }
                 }
-            });
+            }
         
             if (currentValue !== null) {
                 node.send({ payload: currentValue });
