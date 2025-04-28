@@ -40,7 +40,6 @@ module.exports = function (RED) {
                             currentValue = item.value;
                         }
                         currentRule = item.text + " (" + item.startTime + " - " + item.endTime + ")";
-                        break;
                     }
                 }
             }

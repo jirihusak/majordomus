@@ -180,9 +180,9 @@
                             const gradientStart = Math.max(0, (startMinutes - cellStartMinutes) / (cellEndMinutes - cellStartMinutes) * 100);
                             const gradientEnd = Math.min(100, (endMinutes - cellStartMinutes) / (cellEndMinutes - cellStartMinutes) * 100);
 
-                            const existingBackground = cells[i].style.background;
-                            const newBackground = `linear-gradient(to right, transparent ${gradientStart}%, ${data.color} ${gradientStart}%, ${data.color} ${gradientEnd}%, transparent ${gradientEnd}%)`;
-                            cells[i].style.background = existingBackground ? `${existingBackground}, ${newBackground}` : newBackground;
+                             const existingBackground = cells[i].style.background;
+                             const newBackground = `linear-gradient(to right, transparent ${gradientStart}%, ${data.color} ${gradientStart}%, ${data.color} ${gradientEnd}%, transparent ${gradientEnd}%)`;
+                             cells[i].style.background = existingBackground ? `${newBackground}, ${existingBackground}` : newBackground;
                         }
                     }
                 }
