@@ -14,7 +14,9 @@
             offDelay: { value: 5 } // Delay in minutes before turning off
         },
         inputs: 1,
-        outputs: 1, // Default to 1 output
+        outputs: function() {
+            updateOutputs();
+        },
         outputLabels: function() {
             switch (this.typeLight) {
                 case "dimmable":
@@ -145,12 +147,75 @@
     </div>
     <div class="form-row">
         <label for="node-input-autoOffNoMotion">
-            <i class="fa fa-clock-o"></i>Auto Off Without Motion (min)
+            <i class="fa fa-clock-o"></i>Auto Off Without Motion (sec)
         </label>
             <select id="node-input-autoOffNoMotion" style="width: 35%">
                 <option value="true">True</option>
                 <option value="false">False</option>
             </select>
             <input type="number" id="node-input-offDelay" min="1" placeholder="Off Delay (s)" style="margin-left: 2%; width: 33%">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="light">
+    <div class="form-row">
+        <label>Light Node Help</label>
+        <p>The Light node allows control your light with buttons, presense senor and luxmeter. The node supports ON/OFF or dimmable light.</p>
+        <h3>Features:</h3>
+        <ul>
+            <li>Control with buttons (toggle output)</li>
+            <li>Automatic turn on the light on motion</li>
+            <li>Automatic on only in night based on luxmeter</li>
+            <li> Automatic turn off the light after no presense timeout</li>
+            <li>Fade in and fade out for dimmable lights</li>
+        </ul>
+
+        <h3>Configuration Options:</h3>
+        <dl>
+            <dt><b>Name</b></dt>
+            <dd>Specify a unique name for the node.</dd>
+
+            <dt><b>Type</b></dt>
+            <dd>Select type of the light:</dd>
+            <ul>
+                <li><b>Light ON / OFF:</b> The light supports to be ON or OFF.</li>
+                <li><b>Dimmable:</b> The light supports to be ON or OFF and it can adjust the intensity 0 - 100%.</li>
+            </ul>
+
+            <dt><b>Ramp time</b></dt>
+            <dd>Ramp time in miliseconds for fade in adn fade out effect.</dd>
+
+            <dt><b>Auto On with Motion </b></dt>
+            <dd>Enable automatic on in presense.</dd>
+
+            <dt><b>Auto On Only at Night (lux threshold) </b></dt>
+            <dd>Enable automatic on only if lux are less than threshold (in the night).</dd>
+
+            <dt><b>Auto Off Without Motion (sec)  </b></dt>
+            <dd>Enable automatic off when there is no presense (timeout in seonds).</dd>
+        </dl>
+
+        <h3>Inputs:</h3>
+        <ul>
+            <li><b>button:</b> Event of the button - payload must be 1.</li>
+            <li><b>setIntensity:</b> Actual requested insenity, when light is on.</li>
+            <li><b>presense:</b> Presense in the room. Payload in range 0 - 1.</li>
+            <li><b>lightIntensity:</b> Light intensity in the room in Luxes.</li>
+        </ul>
+
+        <h3>Outputs:</h3>
+        <ul>
+            <li><b>state:</b> The output is for power control of the light -  0 or 1</li>
+            <li><b>intensity:</b> The output is for power control of the intensity -  0 - 100 %</li>
+        </ul>
+
+        <h3>Status Indicators:</h3>
+        <ul>
+            <li><b>Green dot:</b> Indicates that light is on. Date of last changed of the state.</li>
+            <li><b>Gray dot:</b> Indicates that light is off.</li>
+        </ul>
+
+        <h3>More Information:</h3>
+        <p>Visit the <a href="https://github.com/jirihusak/majordomus" target="_blank">project's GitHub repository</a> for more details and updates.</p>
     </div>
 </script>

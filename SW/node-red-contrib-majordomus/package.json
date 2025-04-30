@@ -8,9 +8,11 @@
         "scheduling",
         "week-calendar",
         "smart-home",
-        "home-automation"
+        "home-automation",
+	"light",
+	"dimmable-light"
     ],
-    "version": "0.1.10",
+    "version": "0.1.11",
     "author": "Jiri Husak",
     "license": "GPLv3",
     "homepage": "https://www.majordomus.tech",
