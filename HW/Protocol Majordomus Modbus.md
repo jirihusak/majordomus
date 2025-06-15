@@ -14,25 +14,25 @@ Every Device has Modbus Address (1 - 247). See more information about Modbus pro
 
 | Logical address | Register | Action | Size B | Type | Note |
 |--|--|--|--|--|--|
-| 0x401001  | 0x1000 | Read | 2 | INT16 | Temperature from front cover [*10 °C] |
-| 0x401002  | 0x1001 | Read | 2 | INT16 | Temperature from humidity sensor [*10 °C] |
-| 0x401003  | 0x1002 | Read | 2 | UINT16 | Relative humidity [*10 %] |
-| 0x401004  | 0x1003 | Read | 2 | INT16 | Temperature from 1-Wire sensor 0 [*10 °C] |
-| 0x401005  | 0x1004 | Read | 2 | INT16 | Temperature from 1-Wire sensor 1 [*10 °C] |
-| 0x401006  | 0x1005 | Read | 2 | UINT16 | Air Quality VOC index [0-500] |
-| 0x401007  | 0x1006 | Read | 2 | UINT16 | CO2 [ppm] |
-| 0x401008  | 0x1007 | Read | 4 | UINT32 | Light intensity [lux] |
-| 0x401009  | 0x1008 | Read | 2 | UINT16 | Noise level [db] |
-| 0x40100A  | 0x1009 | Read | 1 | UINT8 | Motion detector PIR [0/1] |
-| 0x402001  | 0x2000 | Read | 1 | UINT8 | Digital inputs state bit array |
-| 0x402002  | 0x2001 | Read | 1 | UINT8 | Button inputs bit array rising edge detection |
-| 0x401003  | 0x1002 | Read | 2 | UINT16 | ADC0 Analog input voltage [mV] |
-| 0x401004  | 0x1003 | Read | 2 | UINT16 | ADC1 Analog input voltage [mV] |
-| 0x401005  | 0x1004 | Read | 2 | UINT16 | Power voltage voltage [mV] |
-| 0x401006  | 0x1005 | Read | 2 | UINT16 | Power voltage for outputs voltage [mV] |
-| 0x603001  | 0x3000 | Write | 1 | UINT8 | Digital outputs array |
-| 0x603002  | 0x3001 | Write | 2 | UINT16 | DAC0 analog outputs [mV] |
-| 0x603003  | 0x3002 | Write | 2 | UINT16 | DAC1 analog outputs [mV] |
-| 0x603004  | 0x3003 | Write | 1 | UINT8 | Beep tone [0-4] |
-| 0x603005  | 0x3004 | Write | 1 | UINT8 | LED light [0/1] |
-| 0x603006  | 0x3005 | Write | 2 | INT16 | LCD Requested temperature [*10 °C] |
+| 0x41001  | 0x1000 | Read | 2 | INT16 | Temperature from front cover [*10 °C] |
+| 0x41002  | 0x1001 | Read | 2 | INT16 | Temperature from humidity sensor [*10 °C] |
+| 0x41003  | 0x1002 | Read | 2 | UINT16 | Relative humidity [*10 %] |
+| 0x41004  | 0x1003 | Read | 2 | INT16 | Temperature from 1-Wire sensor 0 [*10 °C] |
+| 0x41005  | 0x1004 | Read | 2 | INT16 | Temperature from 1-Wire sensor 1 [*10 °C] |
+| 0x41006  | 0x1005 | Read | 2 | UINT16 | Air Quality VOC index [0-500] |
+| 0x41007  | 0x1006 | Read | 2 | UINT16 | CO2 [ppm] |
+| 0x41008  | 0x1007 | Read | 4 | UINT32 | Light intensity [lux] |
+| 0x4100A  | 0x1009 | Read | 2 | UINT16 | Noise level [db] |
+| 0x4100B  | 0x100A | Read | 2 | UINT16 | Motion detector PIR [0/1] |
+| 0x4100C  | 0x100B | Read | 2 | UINT16 | Digital inputs state bit array |
+| 0x4100D  | 0x100C | Read | 2 | UINT16 | Button inputs bit array rising edge detection |
+| 0x4100E  | 0x100D | Read | 2 | UINT16 | ADC0 Analog input voltage [mV] |
+| 0x4100F  | 0x100E | Read | 2 | UINT16 | ADC1 Analog input voltage [mV] |
+| 0x41010  | 0x100F | Read | 2 | UINT16 | Power voltage voltage [mV] |
+| 0x41011  | 0x1010 | Read | 2 | UINT16 | Power voltage for outputs voltage [mV] |
+| 0x62001  | 0x2000 | Write | 2 | UINT16 | Digital outputs array |
+| 0x62002  | 0x2001 | Write | 2 | UINT16 | DAC0 analog outputs [mV] |
+| 0x62003  | 0x2002 | Write | 2 | UINT16 | DAC1 analog outputs [mV] |
+| 0x62004  | 0x2003 | Write | 2 | UINT16 | Beep tone [0-4] |
+| 0x62005  | 0x2004 | Write | 2 | UINT16 | LED light [0/1] |
+| 0x62006  | 0x2005 | Write | 2 | INT16 | LCD Requested temperature [*10 °C] |
