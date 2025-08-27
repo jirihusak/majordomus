@@ -31,73 +31,38 @@ public class TempOutBoard extends DeviceGeneric {
     public synchronized void setDataByKey(String key, String data) {
 
         //System.out.println("Recv:" + key + ":" + data);
-        Object parsedData = null;
-        boolean isChangedorTimeouted = false;
-
         try {
 
             switch (key) {
                 case "t0" ->
-                    parsedData = Float.parseFloat(data) / 10.0;
+                    infFromDevice(key, Float.parseFloat(data) / 10.0, true);
                 case "t1" ->
-                    parsedData = Float.parseFloat(data) / 10.0;
+                    infFromDevice(key, Float.parseFloat(data) / 10.0, true);
                 case "t2" ->
-                    parsedData = Float.parseFloat(data) / 10.0;
+                    infFromDevice(key, Float.parseFloat(data) / 10.0, true);
                 case "t3" ->
-                    parsedData = Float.parseFloat(data) / 10.0;
+                    infFromDevice(key, Float.parseFloat(data) / 10.0, true);
                 case "t4" ->
-                    parsedData = Float.parseFloat(data) / 10.0;
+                    infFromDevice(key, Float.parseFloat(data) / 10.0, true);
                 case "t5" ->
-                    parsedData = Float.parseFloat(data) / 10.0;
+                    infFromDevice(key, Float.parseFloat(data) / 10.0, true);
                 case "t6" ->
-                    parsedData = Float.parseFloat(data) / 10.0;
+                    infFromDevice(key, Float.parseFloat(data) / 10.0, true);
                 case "t7" ->
-                    parsedData = Float.parseFloat(data) / 10.0;
+                    infFromDevice(key, Float.parseFloat(data) / 10.0, true);
                 case "type" ->
-                    parsedData = data;
+                    infFromDevice(key, data, true);
                 case "version" ->
-                    parsedData = data;
+                    infFromDevice(key, data, true);
                 case "pwr" ->
-                    parsedData = Float.parseFloat(data);
+                    infFromDevice(key, Float.parseFloat(data), true);
                 case "pwrOut" ->
-                    parsedData = Float.parseFloat(data);
+                    infFromDevice(key, Float.parseFloat(data), true);
 
             }
 
         } catch (NumberFormatException e) {
-            System.err.println("NumberFormatException" + key + ":" + data);
-        }
-
-        // save to map and check if is changed or timeouted
-        if (parsedData != null) {
-
-            DeviceProperty property;
-            // exist? - update
-            if (propertyMap.containsKey(key)) {
-                property = propertyMap.get(key);
-            } // or create new class
-            else {
-                property = new DeviceProperty();
-                propertyMap.put(key, property);
-            }
-
-            property.lastData = property.data;
-            property.data = parsedData;
-
-            if (!property.lastData.equals(parsedData)) {
-                isChangedorTimeouted = true;
-                //System.out.println("changed" + property.lastData + property.data);
-            }
-            if (Duration.between(property.lastSend, LocalDateTime.now()).toMillis() > 5000) {
-                isChangedorTimeouted = true;
-                //System.out.println("timeout" + property.lastData + parsedData);
-            }
-
-            // send MQTT
-            if (isChangedorTimeouted) {
-                property.lastSend = LocalDateTime.now();
-                infFromDevice(key, getDataByKey(key));
-            }
+            //System.err.println("NumberFormatException" + key + ":" + data);
         }
     }
 
@@ -119,16 +84,17 @@ public class TempOutBoard extends DeviceGeneric {
         String msg = "id:" + name;
 
         if (Duration.between(lastStatusReq, now1).toSeconds() > 10) {
-            msg += ",msg:status,";
+            msg += ",msg:status";
             lastStatusReq = now1;
         } else {
             msg += ",msg:data,";
+            msg += "do:" + serializeDO() + ",";
+
+            msg += "ro:" + getDataByKey("ro");
+
         }
 
-        msg += "do:" + serializeDO() + ",";
-
-        msg += "ro:" + getDataByKey("ro");
-
+        
         char crc = SerialCom.SerialCommunication.getInstance().crc8(0, msg.toCharArray(), msg.length());
 
         msg += String.format(",crc:%02x\r\n", (int) crc);
@@ -139,7 +105,7 @@ public class TempOutBoard extends DeviceGeneric {
     @Override
     public synchronized void cmdToDevice(String key, String value) {
 
-        System.out.println("----- Temp Out Board Cmd:" + key + ":" + value);
+        //System.out.println("----- Temp Out Board Cmd:" + key + ":" + value);
         GuiModels.getInstance().updateDeviceMap(name, key, value);
 
         switch (key) {

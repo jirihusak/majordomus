@@ -57,10 +57,35 @@ public abstract class DeviceGeneric {
     
     // For Mqtt interface
     public abstract void cmdToDevice(String key, String value);
-    public void infFromDevice(String key, String value)
+    public void infFromDevice(String key, Object value, boolean retain)
     {
-        MQTT.MQTTinterface.getInstance().publish(name+"/"+key, value, true);
+        boolean changedAndSend = false;
+        
+        DeviceProperty property;
+        // exist? - update
+        if (propertyMap.containsKey(key)) {
+            property = propertyMap.get(key);
+        } // or create new class
+        else {
+            property = new DeviceProperty();
+            propertyMap.put(key, property);
+            changedAndSend = true;
+        }
+
+        if (!property.lastData.equals(value)) {
+            changedAndSend = true;
+            //System.out.println("changed" + property.lastData + property.data);
+        }
+        property.lastData = property.data;
+        property.data = value;
+
+        // send MQTT        
+        if(changedAndSend) {
+            property.lastSend = LocalDateTime.now();
+            MQTT.MQTTinterface.getInstance().publish(name+"/"+key, getDataByKey(key), retain);
+        }
     }
+    
     
     // For serial interface
     public abstract String sendMsg();

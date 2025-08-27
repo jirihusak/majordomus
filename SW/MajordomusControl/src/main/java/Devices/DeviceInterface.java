@@ -107,8 +107,17 @@ public class DeviceInterface {
             return;
         }
 
-        if(deviceMap.containsKey(topicLevels[1]))
-            deviceMap.get(topicLevels[1]).cmdToDevice(topicLevels[2], data);
+        if(deviceMap.containsKey(topicLevels[1])) {
+            try {
+                deviceMap.get(topicLevels[1]).cmdToDevice(topicLevels[2], data);
+            }
+            catch (NumberFormatException e) {
+                System.err.println("Number format error: " + topicLevels[2] + " : " + data);
+            }
+            catch (Exception e) {
+                System.err.println("Parse expeption: " + topicLevels[2] + " : " + data);
+            }
+        }
     }
 
 }

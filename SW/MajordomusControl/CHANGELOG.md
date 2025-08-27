@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GUI add Reset button and change device ID 50:50 (for fixing duplicate id on bus)
 - Split "do" topic to "do0", "do1", ...
 
+
 ## [0.3.0] - YYYY-MM-DD
 ### Added
 - Initial release of MajordomusControl.

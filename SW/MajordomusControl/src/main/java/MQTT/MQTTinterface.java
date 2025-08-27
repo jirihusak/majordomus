@@ -189,7 +189,7 @@ public class MQTTinterface extends Thread {
                     msg.setRetained(data.retain);
                     msg.setPayload(data.data.getBytes());
 
-                    System.out.println("Publish " + data.topic + ": " + msg);
+                    //System.out.println("Publish " + data.topic + ": " + msg);
                     client.publish(data.topic, msg);
                 }
 

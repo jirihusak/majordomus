@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cz.openmajordomus</groupId>
     <artifactId>MajordomusControl</artifactId>
-    <version>0.3.1</version>
+    <version>0.4</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -92,7 +92,7 @@
 				  <configuration>
 					<archive>
 					  <manifest>
-						<mainClass>${fully.qualified.main.class}</mainClass>
+						<mainClass>MajordomusControl.MainClass</mainClass>
 					  </manifest>
 					</archive>
 					<descriptorRefs>

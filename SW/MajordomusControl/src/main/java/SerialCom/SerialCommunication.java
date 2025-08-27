@@ -175,7 +175,7 @@ public final class SerialCommunication {
                 // wait for reply
                 lock.lock();
                 try {
-                    boolean code = msgReceived.await(150, TimeUnit.MILLISECONDS);
+                    boolean code = msgReceived.await(50, TimeUnit.MILLISECONDS);
                     if(code == false){
                         System.err.println(java.time.LocalDateTime.now() + " Device not responding:" + device);
                     }
@@ -189,7 +189,7 @@ public final class SerialCommunication {
                 
                 // sleep
                 try {
-                    Thread.sleep(20);
+                    Thread.sleep(15);
                 } catch (InterruptedException ex) {
                     System.err.println(ex);
                 }
@@ -198,7 +198,7 @@ public final class SerialCommunication {
         
         private void connectionDataReceived(String data){
             
-            System.out.println("RX " + portName+ ":" + data);
+            //System.out.println("RX " + portName+ ":" + data);
             //protocol.protocolParseReceivedData(connectionName, data);
             DeviceInterface.getInstance().parseIncomingSerialData(data);
             lastResponse = Instant.now().toEpochMilli();
@@ -278,7 +278,8 @@ public final class SerialCommunication {
                 if(duration < poolInterval)
                 {
                     try {
-                        Thread.sleep(poolInterval - duration);
+                        if((poolInterval - duration) > 0)
+                            Thread.sleep(poolInterval - duration);
                     } catch (InterruptedException ex) {
                         System.err.println(ex);
                     }

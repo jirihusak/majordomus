@@ -32,87 +32,61 @@ public class RoomSens extends DeviceGeneric {
     public synchronized void setDataByKey(String key, String data) {
 
         //System.out.println("Recv:" + key + ":" + data);
-        Object parsedData = null;
-        boolean isChangedorTimeouted = false;
-
+        int parsedData;
         try {
 
             switch (key) {
-                case "t" ->
-                    parsedData = Float.parseFloat(data) / 10;
+                case "t0" ->
+                    infFromDevice(key, Float.parseFloat(data), true);
                 case "t1" ->
-                    parsedData = Float.parseFloat(data) / 10;
+                    infFromDevice(key, Float.parseFloat(data), true);
                 case "t2" ->
-                    parsedData = Float.parseFloat(data) / 10;
+                    infFromDevice(key, Float.parseFloat(data), true);
                 case "t3" ->
-                    parsedData = Float.parseFloat(data)/ 10;
-                case "t4" ->
-                    parsedData = Float.parseFloat(data)/ 10;
+                    infFromDevice(key, Float.parseFloat(data), true);
                 case "rh" ->
-                    parsedData = Float.parseFloat(data)/ 10;
+                    infFromDevice(key, Float.parseFloat(data), true);
                 case "voc" ->
-                    parsedData = Integer.parseInt(data);
+                    infFromDevice(key, Integer.parseInt(data), true);
                 case "lux" ->
-                    parsedData = Integer.parseInt(data);
+                    infFromDevice(key, Integer.parseInt(data), true);
                 case "mo" ->
-                    parsedData = Integer.parseInt(data);
+                    infFromDevice(key, Integer.parseInt(data), true);
                 case "nl" ->
+                    infFromDevice(key, Integer.parseInt(data), true);
+                case "di" -> {
                     parsedData = Integer.parseInt(data);
-                case "di" ->
-                    parsedData = Integer.valueOf(data);
-                case "btn" ->
-                    parsedData = Integer.valueOf(data);
+                    infFromDevice("di0", ((parsedData >> 0) & 1), true);
+                    infFromDevice("di1", ((parsedData >> 1) & 1), true);
+                    infFromDevice("di2", ((parsedData >> 2) & 1), true);
+                    infFromDevice("di3", ((parsedData >> 3) & 1), true);
+                }
+                case "btn" -> {
+                    parsedData = Integer.parseInt(data);
+                    infFromDevice("btn0", ((parsedData >> 0) & 1), false);
+                    infFromDevice("btn1", ((parsedData >> 1) & 1), false);
+                    infFromDevice("btn2", ((parsedData >> 2) & 1), false);
+                    infFromDevice("btn3", ((parsedData >> 3) & 1), false);
+                }
                 case "adc0" ->
-                    parsedData = Float.parseFloat(data);
+                    infFromDevice(key, Float.parseFloat(data), true);
                 case "adc1" ->
-                    parsedData = Float.parseFloat(data);
+                    infFromDevice(key, Float.parseFloat(data), true);
                 case "type" ->
-                    parsedData = data;
+                    infFromDevice(key, data, true);
                 case "version" ->
-                    parsedData = data;
+                    infFromDevice(key, data, true);
                 case "pwr" ->
-                    parsedData = Float.parseFloat(data);
+                    infFromDevice(key, Float.parseFloat(data), true);
                 case "pwrOut" ->
-                    parsedData = Float.parseFloat(data);
+                    infFromDevice(key, Float.parseFloat(data), true);
                 case "newReqT" ->
-                    parsedData = Float.parseFloat(data) / 10;
+                    infFromDevice(key, Float.parseFloat(data), false);
 
             }
 
         } catch (NumberFormatException e) {
-            System.err.println("NumberFormatException" + key + ":" + data);
-        }
-
-        // save to map and check if is changed or timeouted
-        if (parsedData != null) {
-
-            DeviceProperty property;
-            // exist? - update
-            if (propertyMap.containsKey(key)) {
-                property = propertyMap.get(key);
-            } // or create new class
-            else {
-                property = new DeviceProperty();
-                propertyMap.put(key, property);
-            }
-
-            property.lastData = property.data;
-            property.data = parsedData;
-
-            if (!property.lastData.equals(parsedData)) {
-                isChangedorTimeouted = true;
-                //System.out.println("changed" + property.lastData + property.data);
-            }
-            if (Duration.between(property.lastSend, LocalDateTime.now()).toMillis() > 5000) {
-                isChangedorTimeouted = true;
-                //System.out.println("timeout" + property.lastData + parsedData);
-            }
-
-            // send MQTT
-            if (isChangedorTimeouted) {
-                property.lastSend = LocalDateTime.now();
-                infFromDevice(key, getDataByKey(key));
-            }
+            //System.err.println("NumberFormatException" + key + ":" + data);
         }
     }
 
@@ -134,25 +108,27 @@ public class RoomSens extends DeviceGeneric {
         
         if(Duration.between(lastStatusReq, now1).toSeconds() > 10)
         {
-            msg += ",msg:status,";
+            msg += ",msg:status";
             lastStatusReq = now1;
         }
         else {
             msg += ",msg:data,";    
-        }
-        
-        
-        msg += "do:" + serializeDO() + ",";
-        msg += "dac0:" + getDataByKey("dac0") + ",";
-        msg += "dac1:" + getDataByKey("dac1") + ",";
-        msg += "light:" + getDataByKey("light") + ",";
-        msg += "reqT:" + getDataByKey("reqT");
+            
+            msg += "do:" + serializeDO() + ",";
+            msg += "dac0:" + getDataByKey("dac0") + ",";
+            msg += "dac1:" + getDataByKey("dac1") + ",";
+            msg += "light:" + getDataByKey("light") + ",";
+            msg += "reqT:" + getDataByKey("reqT");
 
-        // bell
-        if (!getDataByKey("beep").equals("0")) {
-            msg += ",beep:" + getDataByKey("beep");
-            cmdToDevice("beep", "0");
+            // bell
+            if (!getDataByKey("beep").equals("0")) {
+                msg += ",beep:" + getDataByKey("beep");
+                cmdToDevice("beep", "0");
+            }
         }
+        
+        
+        
         
         char crc = SerialCom.SerialCommunication.getInstance().crc8(0, msg.toCharArray(), msg.length());
 
@@ -182,7 +158,7 @@ public class RoomSens extends DeviceGeneric {
             case "beep" ->
                 propertyMap.get(key).data = Integer.valueOf(value);
             case "reqT" ->
-                propertyMap.get(key).data = Integer.valueOf(value);
+                propertyMap.get(key).data = Float.valueOf(value);
             case "light" ->
                 propertyMap.get(key).data = Integer.valueOf(value);
         }
