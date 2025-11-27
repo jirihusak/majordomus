@@ -71,7 +71,7 @@ void PIN_MANAGER_Initialize(void)
     TRISF = 0xF7;
     TRISA = 0xFF;
     TRISB = 0xD8;
-    TRISC = 0x0B;
+    TRISC = 0x0A;
     TRISD = 0x07;
 
     /**
@@ -141,12 +141,15 @@ void PIN_MANAGER_Initialize(void)
    
     
 	
+    RC0PPS = 0x1E;   //RC0->SPI1:SCK1;    
+    SPI1SCKPPS = 0x10;   //RC0->SPI1:SCK1;    
     RF3PPS = 0x13;   //RF3->UART1:TX1;    
     CLCIN0PPS = 0x04;   //RA4->CLC3:CLCIN0;    
     RB0PPS = 0x03;   //RB0->CLC3:CLC3;    
     RC2PPS = 0x14;   //RC2->UART1:TXDE1;    
     U1RXPPS = 0x13;   //RC3->UART1:RX1;    
     RD7PPS = 0x10;   //RD7->PWM8:PWM8;    
+    SPI1SDIPPS = 0x10;   //RC0->SPI1:SDI1;    
     U1CTSPPS = 0x10;   //RC0->UART1:CTS1;    
 }
   

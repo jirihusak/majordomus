@@ -12,6 +12,7 @@
         <itemPath>drivers/temp_ds18B20.h</itemPath>
         <itemPath>drivers/tick.h</itemPath>
         <itemPath>drivers/dac_pwm.h</itemPath>
+        <itemPath>drivers/fram_MB85RC.h</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
@@ -29,11 +30,23 @@
         <itemPath>mcc_generated_files/interrupt_manager.h</itemPath>
         <itemPath>mcc_generated_files/pwm8.h</itemPath>
         <itemPath>mcc_generated_files/clc3.h</itemPath>
+        <itemPath>mcc_generated_files/pwm5.h</itemPath>
+        <itemPath>mcc_generated_files/pwm6.h</itemPath>
+        <itemPath>mcc_generated_files/tmr1.h</itemPath>
+        <itemPath>mcc_generated_files/spi1.h</itemPath>
+        <itemPath>mcc_generated_files/clc4.h</itemPath>
+        <itemPath>mcc_generated_files/tmr6.h</itemPath>
       </logicalFolder>
       <itemPath>app.h</itemPath>
       <itemPath>device_memory.h</itemPath>
       <itemPath>digital_io.h</itemPath>
       <itemPath>serial_interface.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="true">
+      <itemPath>Makefile</itemPath>
+      <itemPath>RoomIO.mc3</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -50,6 +63,7 @@
         <itemPath>drivers/temp_ds18B20.c</itemPath>
         <itemPath>drivers/tick.c</itemPath>
         <itemPath>drivers/dac_pwm.c</itemPath>
+        <itemPath>drivers/fram_MB85RC.c</itemPath>
       </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
@@ -67,18 +81,18 @@
         <itemPath>mcc_generated_files/tmr2.c</itemPath>
         <itemPath>mcc_generated_files/interrupt_manager.c</itemPath>
         <itemPath>mcc_generated_files/clc3.c</itemPath>
+        <itemPath>mcc_generated_files/tmr1.c</itemPath>
+        <itemPath>mcc_generated_files/pwm6.c</itemPath>
+        <itemPath>mcc_generated_files/pwm5.c</itemPath>
+        <itemPath>mcc_generated_files/spi1.c</itemPath>
+        <itemPath>mcc_generated_files/clc4.c</itemPath>
+        <itemPath>mcc_generated_files/tmr6.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>app.c</itemPath>
       <itemPath>device_memory.c</itemPath>
       <itemPath>digital_io.c</itemPath>
       <itemPath>serial_interface.c</itemPath>
-    </logicalFolder>
-    <logicalFolder name="ExternalFiles"
-                   displayName="Important Files"
-                   projectFiles="false">
-      <itemPath>Makefile</itemPath>
-      <itemPath>RoomIO.mc3</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -94,7 +108,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>XC8</languageToolchain>
-        <languageToolchainVersion>2.35</languageToolchainVersion>
+        <languageToolchainVersion>3.00</languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
       <packs>
@@ -161,52 +175,6 @@
         <property key="warning-level" value="-3"/>
         <property key="what-to-do" value="ignore"/>
       </HI-TECH-COMP>
-      <HI-TECH-LINK>
-        <property key="additional-options-checksum" value=""/>
-        <property key="additional-options-code-offset" value=""/>
-        <property key="additional-options-command-line" value=""/>
-        <property key="additional-options-errata" value=""/>
-        <property key="additional-options-extend-address" value="false"/>
-        <property key="additional-options-trace-type" value=""/>
-        <property key="additional-options-use-response-files" value="false"/>
-        <property key="backup-reset-condition-flags" value="false"/>
-        <property key="calibrate-oscillator" value="false"/>
-        <property key="calibrate-oscillator-value" value="0x3400"/>
-        <property key="clear-bss" value="true"/>
-        <property key="code-model-external" value="wordwrite"/>
-        <property key="code-model-rom" value=""/>
-        <property key="create-html-files" value="false"/>
-        <property key="data-model-ram" value=""/>
-        <property key="data-model-size-of-double" value="32"/>
-        <property key="data-model-size-of-double-gcc" value="no-short-double"/>
-        <property key="data-model-size-of-float" value="32"/>
-        <property key="data-model-size-of-float-gcc" value="no-short-float"/>
-        <property key="display-class-usage" value="false"/>
-        <property key="display-hex-usage" value="false"/>
-        <property key="display-overall-usage" value="true"/>
-        <property key="display-psect-usage" value="false"/>
-        <property key="extra-lib-directories" value=""/>
-        <property key="fill-flash-options-addr" value=""/>
-        <property key="fill-flash-options-const" value=""/>
-        <property key="fill-flash-options-how" value="0"/>
-        <property key="fill-flash-options-inc-const" value="1"/>
-        <property key="fill-flash-options-increment" value=""/>
-        <property key="fill-flash-options-seq" value=""/>
-        <property key="fill-flash-options-what" value="0"/>
-        <property key="format-hex-file-for-download" value="false"/>
-        <property key="initialize-data" value="true"/>
-        <property key="input-libraries" value="libm"/>
-        <property key="keep-generated-startup.as" value="false"/>
-        <property key="link-in-c-library" value="true"/>
-        <property key="link-in-c-library-gcc" value=""/>
-        <property key="link-in-peripheral-library" value="false"/>
-        <property key="managed-stack" value="false"/>
-        <property key="opt-xc8-linker-file" value="false"/>
-        <property key="opt-xc8-linker-link_startup" value="false"/>
-        <property key="opt-xc8-linker-serial" value=""/>
-        <property key="program-the-device-with-default-config-words" value="true"/>
-        <property key="remove-unused-sections" value="true"/>
-      </HI-TECH-LINK>
       <PICkit3PlatformTool>
         <property key="AutoSelectMemRanges" value="auto"/>
         <property key="Freeze Peripherals" value="true"/>
@@ -217,7 +185,12 @@
         <property key="debugoptions.debug-startup" value="Use system settings"/>
         <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="event.recorder.debugger.behavior" value="Running"/>
+        <property key="event.recorder.enabled" value="false"/>
+        <property key="event.recorder.scvd.files" value=""/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
+        <property key="lastid" value=""/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>
         <property key="memories.configurationmemory" value="true"/>
@@ -261,8 +234,12 @@
         <property key="debugoptions.debug-startup" value="Use system settings"/>
         <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="event.recorder.debugger.behavior" value="Running"/>
+        <property key="event.recorder.enabled" value="false"/>
+        <property key="event.recorder.scvd.files" value=""/>
         <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
+        <property key="lastid" value=""/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>
         <property key="memories.configurationmemory" value="true"/>
@@ -302,12 +279,15 @@
       </XC8-CO>
       <XC8-config-global>
         <property key="advanced-elf" value="true"/>
+        <property key="constdata-progmem" value="false"/>
         <property key="gcc-opt-driver-new" value="true"/>
         <property key="gcc-opt-std" value="-std=c99"/>
         <property key="gcc-output-file-format" value="dwarf-3"/>
+        <property key="mapped-progmem" value="false"/>
         <property key="omit-pack-options" value="false"/>
         <property key="omit-pack-options-new" value="1"/>
         <property key="output-file-format" value="-mcof,+elf"/>
+        <property key="smart-io-format" value=""/>
         <property key="stack-size-high" value="auto"/>
         <property key="stack-size-low" value="auto"/>
         <property key="stack-size-main" value="auto"/>
@@ -324,7 +304,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>XC8</languageToolchain>
-        <languageToolchainVersion>2.35</languageToolchainVersion>
+        <languageToolchainVersion>3.00</languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
       <packs>
@@ -340,6 +320,7 @@
         <archiverTool>
         </archiverTool>
         <loading>
+          <loadableFile>../../Bootloader/Bootloader.X/dist/default/production/Bootloader.X.production.hex</loadableFile>
           <useAlternateLoadableFile>false</useAlternateLoadableFile>
           <parseOnProdLoad>false</parseOnProdLoad>
           <alternateLoadableFile></alternateLoadableFile>
@@ -391,52 +372,6 @@
         <property key="warning-level" value="-3"/>
         <property key="what-to-do" value="ignore"/>
       </HI-TECH-COMP>
-      <HI-TECH-LINK>
-        <property key="additional-options-checksum" value=""/>
-        <property key="additional-options-code-offset" value="6000"/>
-        <property key="additional-options-command-line" value=""/>
-        <property key="additional-options-errata" value=""/>
-        <property key="additional-options-extend-address" value="false"/>
-        <property key="additional-options-trace-type" value=""/>
-        <property key="additional-options-use-response-files" value="false"/>
-        <property key="backup-reset-condition-flags" value="false"/>
-        <property key="calibrate-oscillator" value="false"/>
-        <property key="calibrate-oscillator-value" value="0x3400"/>
-        <property key="clear-bss" value="true"/>
-        <property key="code-model-external" value="wordwrite"/>
-        <property key="code-model-rom" value=""/>
-        <property key="create-html-files" value="false"/>
-        <property key="data-model-ram" value=""/>
-        <property key="data-model-size-of-double" value="32"/>
-        <property key="data-model-size-of-double-gcc" value="no-short-double"/>
-        <property key="data-model-size-of-float" value="32"/>
-        <property key="data-model-size-of-float-gcc" value="no-short-float"/>
-        <property key="display-class-usage" value="false"/>
-        <property key="display-hex-usage" value="false"/>
-        <property key="display-overall-usage" value="true"/>
-        <property key="display-psect-usage" value="false"/>
-        <property key="extra-lib-directories" value=""/>
-        <property key="fill-flash-options-addr" value=""/>
-        <property key="fill-flash-options-const" value=""/>
-        <property key="fill-flash-options-how" value="0"/>
-        <property key="fill-flash-options-inc-const" value="1"/>
-        <property key="fill-flash-options-increment" value=""/>
-        <property key="fill-flash-options-seq" value=""/>
-        <property key="fill-flash-options-what" value="0"/>
-        <property key="format-hex-file-for-download" value="false"/>
-        <property key="initialize-data" value="true"/>
-        <property key="input-libraries" value="libm"/>
-        <property key="keep-generated-startup.as" value="false"/>
-        <property key="link-in-c-library" value="true"/>
-        <property key="link-in-c-library-gcc" value=""/>
-        <property key="link-in-peripheral-library" value="false"/>
-        <property key="managed-stack" value="false"/>
-        <property key="opt-xc8-linker-file" value="false"/>
-        <property key="opt-xc8-linker-link_startup" value="false"/>
-        <property key="opt-xc8-linker-serial" value=""/>
-        <property key="program-the-device-with-default-config-words" value="true"/>
-        <property key="remove-unused-sections" value="true"/>
-      </HI-TECH-LINK>
       <PICkit3PlatformTool>
         <property key="AutoSelectMemRanges" value="auto"/>
         <property key="Freeze Peripherals" value="true"/>
@@ -447,7 +382,12 @@
         <property key="debugoptions.debug-startup" value="Use system settings"/>
         <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="event.recorder.debugger.behavior" value="Running"/>
+        <property key="event.recorder.enabled" value="false"/>
+        <property key="event.recorder.scvd.files" value=""/>
+        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
+        <property key="lastid" value=""/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>
         <property key="memories.configurationmemory" value="true"/>
@@ -491,8 +431,12 @@
         <property key="debugoptions.debug-startup" value="Use system settings"/>
         <property key="debugoptions.reset-behaviour" value="Use system settings"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
+        <property key="event.recorder.debugger.behavior" value="Running"/>
+        <property key="event.recorder.enabled" value="false"/>
+        <property key="event.recorder.scvd.files" value=""/>
         <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
+        <property key="lastid" value=""/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>
         <property key="memories.configurationmemory" value="true"/>
@@ -532,12 +476,15 @@
       </XC8-CO>
       <XC8-config-global>
         <property key="advanced-elf" value="true"/>
+        <property key="constdata-progmem" value="false"/>
         <property key="gcc-opt-driver-new" value="true"/>
         <property key="gcc-opt-std" value="-std=c99"/>
         <property key="gcc-output-file-format" value="dwarf-3"/>
+        <property key="mapped-progmem" value="false"/>
         <property key="omit-pack-options" value="false"/>
         <property key="omit-pack-options-new" value="1"/>
         <property key="output-file-format" value="-mcof,+elf"/>
+        <property key="smart-io-format" value=""/>
         <property key="stack-size-high" value="auto"/>
         <property key="stack-size-low" value="auto"/>
         <property key="stack-size-main" value="auto"/>

@@ -14,9 +14,7 @@
             offDelay: { value: 5 } // Delay in minutes before turning off
         },
         inputs: 1,
-        outputs: function() {
-            updateOutputs();
-        },
+        outputs: 2,
         outputLabels: function() {
             switch (this.typeLight) {
                 case "dimmable":
@@ -54,16 +52,16 @@
             function updateOutputs() {
                 var selectedType = $("#node-input-type").val();
                 if (selectedType === "dimmable") {
-                    node.outputs = 2;
+                    //node.outputs = 2;
                     node.outputLabels = ["Light State", "Intensity"];
                 } else if (selectedType === "cct") {
-                    node.outputs = 3;
+                    //node.outputs = 3;
                     node.outputLabels = ["Light State", "Intensity", "Color Temperature"];
                 } else if (selectedType === "rgb") {
-                    node.outputs = 1;
+                    //node.outputs = 1;
                     node.outputLabels = ["Color"];
                 } else {
-                    node.outputs = 1;
+                    //node.outputs = 1;
                     node.outputLabels = ["Light State"];
                 }
                 $("#node-input-outputs").val(node.outputs);

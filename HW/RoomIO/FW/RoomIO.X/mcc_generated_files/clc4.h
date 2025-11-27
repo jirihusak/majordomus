@@ -1,17 +1,17 @@
  /**
-   CLC3 Generated Driver File
+   CLC4 Generated Driver API Header File
  
    @Company
-     Microchip Technology Inc.
- 
+     Microchip Technology Inc. 
+
    @File Name
-     clc3.c
- 
+    clc4.h
+
    @Summary
-     This is the generated driver implementation file for the CLC3 driver using PIC10 / PIC12 / PIC16 / PIC18 MCUs
+     This is the generated header file for the CLC4 driver using PIC10 / PIC12 / PIC16 / PIC18 MCUs
  
    @Description
-     This source file provides implementations for driver APIs for CLC3.
+     This header file provides APIs for driver for CLC4.
      Generation Information :
          Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.81.6
          Device            :  PIC18LF57K42
@@ -19,9 +19,9 @@
      The generated drivers are tested against the following:
          Compiler          :  XC8 2.30 and above or later
          MPLAB             :  MPLAB X 5.40
- */ 
+ */
 
- /*
+/*
     (c) 2018 Microchip Technology Inc. and its subsidiaries. 
     
     Subject to your compliance with these terms, you may use Microchip software and any 
@@ -43,50 +43,83 @@
     OF FEES, IF ANY, THAT YOU HAVE PAID DIRECTLY TO MICROCHIP FOR THIS 
     SOFTWARE.
 */
+
+#ifndef CLC4_H
+ #define CLC4_H
  
  /**
    Section: Included Files
  */
 
 #include <xc.h>
-#include "clc3.h"
+#include <stdint.h>
+#include <stdbool.h>
+
+#ifdef __cplusplus  // Provide C++ Compatibility
+
+    extern "C" {
+
+#endif
 
 /**
-  Section: CLC3 APIs
+  Section: CLC4 APIs
 */
 
-void CLC3_Initialize(void)
-{
-    // Set the CLC3 to the options selected in the User Interface
+/**
+  @Summary
+    Initializes the CLC4
 
-    // LC3G1POL not_inverted; LC3G2POL inverted; LC3G3POL inverted; LC3G4POL inverted; LC3POL not_inverted; 
-    CLC3POL = 0x0E;
-    // LC3D1S PWM7_OUT; 
-    CLC3SEL0 = 0x1A;
-    // LC3D2S CLCIN0 (CLCIN0PPS); 
-    CLC3SEL1 = 0x00;
-    // LC3D3S CLCIN0 (CLCIN0PPS); 
-    CLC3SEL2 = 0x00;
-    // LC3D4S CLCIN0 (CLCIN0PPS); 
-    CLC3SEL3 = 0x00;
-    // LC3G1D3N disabled; LC3G1D2N disabled; LC3G1D4N disabled; LC3G1D1T enabled; LC3G1D3T disabled; LC3G1D2T disabled; LC3G1D4T disabled; LC3G1D1N disabled; 
-    CLC3GLS0 = 0x02;
-    // LC3G2D2N disabled; LC3G2D1N disabled; LC3G2D4N disabled; LC3G2D3N disabled; LC3G2D2T disabled; LC3G2D1T disabled; LC3G2D4T disabled; LC3G2D3T disabled; 
-    CLC3GLS1 = 0x00;
-    // LC3G3D1N disabled; LC3G3D2N disabled; LC3G3D3N disabled; LC3G3D4N disabled; LC3G3D1T disabled; LC3G3D2T disabled; LC3G3D3T disabled; LC3G3D4T disabled; 
-    CLC3GLS2 = 0x00;
-    // LC3G4D1N disabled; LC3G4D2N disabled; LC3G4D3N disabled; LC3G4D4N disabled; LC3G4D1T disabled; LC3G4D2T disabled; LC3G4D3T disabled; LC3G4D4T disabled; 
-    CLC3GLS3 = 0x00;
-    // LC3EN enabled; INTN disabled; INTP disabled; MODE 4-input AND; 
-    CLC3CON = 0x82;
+  @Description
+    This routine configures the CLC4 specific control registers
 
-}
+  @Preconditions
+    None
 
+  @Returns
+    None
 
-bool CLC3_OutputStatusGet(void)
-{
-    return(CLC3CONbits.LC3OUT);
-}
+  @Param
+    None
+
+  @Comment
+
+  @Example
+    <code>
+    CLC4_Initialize();
+    </code>
+*/
+void CLC4_Initialize(void);
+
+/**
+  @Summary
+    Returns output pin status of the CLC module.
+
+  @Description
+    This routine returns output pin status of the CLC module.
+
+  @Param
+    None.
+
+  @Returns
+    Output pin status
+ 
+  @Example 
+    <code>
+    bool outputStatus;
+    outputStatus = CLC4_OutputStatusGet();
+    </code>
+*/
+
+bool CLC4_OutputStatusGet(void);
+
+#ifdef __cplusplus  // Provide C++ Compatibility
+
+    }
+
+#endif
+
+#endif  // CLC4_H
 /**
  End of File
 */
+

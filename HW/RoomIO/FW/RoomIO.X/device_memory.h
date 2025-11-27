@@ -26,6 +26,7 @@ typedef struct {
     uint32_t bootloader;
     uint32_t memory_struct_version;
     uint8_t device_name[DEVICE_MEMORY_MAX_NAME_LENGTH];
+    uint8_t modbusAddress;
 } t_eeprom_struct;
 
 extern t_eeprom_struct eeprom_memory;

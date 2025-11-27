@@ -1,21 +1,21 @@
  /**
-   CLC3 Generated Driver API Header File
+   PWM6 Generated Driver API Header File
  
    @Company
      Microchip Technology Inc. 
 
    @File Name
-    clc3.h
+    pwm6.h
 
    @Summary
-     This is the generated header file for the CLC3 driver using PIC10 / PIC12 / PIC16 / PIC18 MCUs
+     This is the generated header file for the PWM6 driver using PIC10 / PIC12 / PIC16 / PIC18 MCUs
  
    @Description
-     This header file provides APIs for driver for CLC3.
+     This header file provides APIs for driver for PWM6.
      Generation Information :
          Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.81.6
          Device            :  PIC18LF57K42
-         Driver Version    :  2.11
+         Driver Version    :  2.01
      The generated drivers are tested against the following:
          Compiler          :  XC8 2.30 and above or later
          MPLAB             :  MPLAB X 5.40
@@ -44,82 +44,98 @@
     SOFTWARE.
 */
 
-#ifndef CLC3_H
- #define CLC3_H
+#ifndef PWM6_H
+ #define PWM6_H
  
  /**
    Section: Included Files
  */
 
-#include <xc.h>
-#include <stdint.h>
-#include <stdbool.h>
+ #include <xc.h>
+ #include <stdint.h>
 
-#ifdef __cplusplus  // Provide C++ Compatibility
+ #ifdef __cplusplus  // Provide C++ Compatibility
 
-    extern "C" {
+     extern "C" {
 
-#endif
+ #endif
 
-/**
-  Section: CLC3 APIs
-*/
+ /**
+   Section: Macro Declarations
+ */
 
-/**
-  @Summary
-    Initializes the CLC3
+ #define PWM6_INITIALIZE_DUTY_VALUE    15
 
-  @Description
-    This routine configures the CLC3 specific control registers
+ /**
+   Section: PWM Module APIs
+ */
 
-  @Preconditions
-    None
+ /**
+   @Summary
+     Initializes the PWM6
 
-  @Returns
-    None
+   @Description
+     This routine initializes the EPWM6_Initialize
+     This routine must be called before any other PWM6 routine is called.
+     This routine should only be called once during system initialization.
 
-  @Param
-    None
+   @Preconditions
+     None
 
-  @Comment
+   @Param
+     None
+
+   @Returns
+     None
+
+   @Comment
+     
 
   @Example
-    <code>
-    CLC3_Initialize();
-    </code>
-*/
-void CLC3_Initialize(void);
+     <code>
+     uint16_t dutycycle;
 
-/**
-  @Summary
-    Returns output pin status of the CLC module.
+     PWM6_Initialize();
+     PWM6_LoadDutyValue(dutycycle);
+     </code>
+  */
+ void PWM6_Initialize(void);
 
-  @Description
-    This routine returns output pin status of the CLC module.
+ /**
+   @Summary
+     Loads 16-bit duty cycle.
 
-  @Param
-    None.
+   @Description
+     This routine loads the 16 bit duty cycle value.
 
-  @Returns
-    Output pin status
+   @Preconditions
+     PWM6_Initialize() function should have been called 
+         before calling this function.
+
+   @Param
+     Pass 16bit duty cycle value.
+
+   @Returns
+     None
+
+   @Example
+     <code>
+     uint16_t dutycycle;
+
+     PWM6_Initialize();
+     PWM6_LoadDutyValue(dutycycle);
+     </code>
+ */
+ void PWM6_LoadDutyValue(uint16_t dutyValue);
+
  
-  @Example 
-    <code>
-    bool outputStatus;
-    outputStatus = CLC3_OutputStatusGet();
-    </code>
-*/
+ #ifdef __cplusplus  // Provide C++ Compatibility
 
-bool CLC3_OutputStatusGet(void);
+     }
 
-#ifdef __cplusplus  // Provide C++ Compatibility
+ #endif
 
-    }
-
-#endif
-
-#endif  // CLC3_H
-/**
- End of File
-*/
-
+ #endif	//PWM6_H
+ /**
+  End of File
+ */

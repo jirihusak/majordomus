@@ -26,7 +26,7 @@ int32_t temp_TMP1075_read_temperature()
         
         int32_t decadic = ((int32_t)raw_data * 100) >> 8;
         
-        printf("temp raw %x %x %d %d\r\n", rx_buffer[0], rx_buffer[1], raw_data, (int16_t)decadic);
+        //printf("temp raw %x %x %d %d\r\n", rx_buffer[0], rx_buffer[1], raw_data, (int16_t)decadic);
         
         return decadic;
     }

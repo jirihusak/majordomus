@@ -17,12 +17,12 @@ extern "C" {
 
     
 // Define i2c pins
-#define SDA			LATAbits.LATA5  		// 
-#define SCL			LATAbits.LATA4			// 
-#define SDA_GET		PORTAbits.RA5           // 
-#define SCL_GET		PORTAbits.RA4			// 
-#define SDA_DIR		TRISAbits.TRISA5		// 
-#define SCL_DIR		TRISAbits.TRISA4		// 
+#define SDA			LATBbits.LATB2  		// 
+#define SCL			LATBbits.LATB1			// 
+#define SDA_GET		PORTBbits.RB2           // 
+#define SCL_GET		PORTBbits.RB1			// 
+#define SDA_DIR		TRISBbits.TRISB2		// 
+#define SCL_DIR		TRISBbits.TRISB1		// 
 
 // Define i2c speed
 #define I2C_SPEED	 100				// kbps 

@@ -18,7 +18,9 @@ static uint8_t rxSerialBuffer[RX_BUFFER_SIZE];
 static uint16_t rxSerialBufferIndex;
 typedef enum {RESPONSE_NONE, RESPONSE_DATA, RESPONSE_CONFIG, RESPONSE_STATUS} responseType;
 
-static uint8_t tx_buffer[150];
+static uint8_t tx_buffer[200];
+static char myIdString[DEVICE_MEMORY_MAX_NAME_LENGTH+4];
+static uint32_t commTimeoutTimer = 0;
 
 void serial_interface_parse_msg();
 void parse_msg_data(char *sub_token);
@@ -27,42 +29,59 @@ void parse_msg_config(char *sub_token);
 void send_response_data();
 void send_response_status();
 void send_response_config();
+void send_response_badCrc();
 
 void serialInterface_init()
 {
     rxSerialBufferIndex = 0;
     memset(rxSerialBuffer, 0, RX_BUFFER_SIZE);
+    
+    sprintf(myIdString, "id:%s,", eeprom_memory.device_name);
 }
 
 void serialInterface_process()
 {
-    bool delimiterFound = false;
-    
     // read data from UART
     while(UART1_is_rx_ready() && rxSerialBufferIndex < RX_BUFFER_SIZE){
-        LED_WORK_Toggle();
         rxSerialBuffer[rxSerialBufferIndex] = UART1_Read();
         rxSerialBufferIndex++;
         
-        if(rxSerialBufferIndex >= 2 && rxSerialBuffer[rxSerialBufferIndex-1] == '\n' && rxSerialBuffer[rxSerialBufferIndex-2] == '\r') {
-            delimiterFound = true;
-            break;
-        }
+        commTimeoutTimer = tick_getTick();
         
         if(rxSerialBufferIndex >= RX_BUFFER_SIZE){
             rxSerialBufferIndex = 0;
-            memset(rxSerialBuffer, 0, RX_BUFFER_SIZE);
-            break;
+            continue;
         }
+        
+        // ASCII majordomus protocol id:X,...,crc:XX\r\n
+        if(rxSerialBufferIndex >= 12 && rxSerialBuffer[rxSerialBufferIndex-1] == '\n' && rxSerialBuffer[rxSerialBufferIndex-2] == '\r')
+        {
+            rxSerialBuffer[rxSerialBufferIndex] = 0;
+            serial_interface_parse_msg();
+            // clear buffer
+            rxSerialBufferIndex = 0;
+            rxSerialBuffer[0] = 0;
+            continue;
+            
+        }
+//        // Modbus
+//        else if(rxSerialBufferIndex >= 8 && rxSerialBuffer[0] == eeprom_memory.modbusAddress && is_valid_modbus_frame(rxSerialBuffer, rxSerialBufferIndex) )
+//        {
+//            //serial_interface_parse_modbus_msg();
+//            // clear buffer
+//            rxSerialBufferIndex = 0;
+//            rxSerialBuffer[0] = 0;
+//            //memset(rxSerialBuffer, 0, RX_BUFFER_SIZE);
+//            continue;
+//        }
+        
     }
     
-    // check if is delimiter \r\n
-    if(delimiterFound) {
-        serial_interface_parse_msg();      
-        
-        // clear buffer
+    // communication timeout - clear buffer
+    if((tick_getTick()-commTimeoutTimer) >= 5*TICK_MILISECOND){
         rxSerialBufferIndex = 0;
-        memset(rxSerialBuffer, 0, RX_BUFFER_SIZE);   
+        rxSerialBuffer[0] = 0;
+        commTimeoutTimer = tick_getTick();
     }
 }
 
@@ -70,29 +89,42 @@ void serial_interface_parse_msg()
 {
     if(rxSerialBufferIndex < 9)
         return;
+   
+    // check if is for me
+    bool is_for_me = false;
+    responseType resp = RESPONSE_NONE; 
+    
+    // chceck ID 
+    if(strncmp(rxSerialBuffer, myIdString, strlen(myIdString)) == 0 )
+    {
+        is_for_me = true;
+        LED_WORK_SetLow();
+    }
+    else if(strncmp(rxSerialBuffer, "id:all,", 7) == 0)
+    {
+        is_for_me = true;
+        LED_WORK_SetLow();
+        // insert random delay prevent all devices reansweren in same time
+        uint8_t delay = ((tick_getTick() & 7) + (meas_values.power & 7));
+        for(int i = 0; i < delay; i++){
+            __delay_ms(1);
+        }  
+    }
+    else {
+        return;
+    }
     
     uint8_t crc = crc8( 0, rxSerialBuffer, rxSerialBufferIndex - 9); //",crc:AB\r\n"
     uint8_t received_crc = 0;
     int found =  sscanf(&rxSerialBuffer[rxSerialBufferIndex - 9], ",crc:%02x\r\n", &received_crc);
     
-    if(!found || (crc != received_crc)){
-        int actual_len = 0;
-    
-        actual_len += sprintf(tx_buffer, "id:%s,msg:badCrc", 
-            eeprom_memory.device_name);
-    
-        uint8_t crc = crc8( 0, tx_buffer, actual_len);
-        actual_len += sprintf(&(tx_buffer[actual_len]), ",crc:%02x\r\n", crc);
-    
-        printf("%s", tx_buffer); 
+    if(!found || (crc != received_crc))
+    {
+        send_response_badCrc();
         return;
     }
     
     char * token = strtok(rxSerialBuffer, ", \r\n\t");
-    
-    // check if is for me
-    bool is_for_me = false;
-    responseType resp = RESPONSE_NONE; 
     
     while( token != NULL ) {
         //printf( " %s\n", token ); //printing each token
@@ -134,6 +166,30 @@ void serial_interface_parse_msg()
         else if( is_for_me && strncmp("dac1:", token, 5) == 0){
             dac_pwm_set_milivolts_CH1(atof(&token[5]) * 1000);
         }
+        else if( is_for_me && strncmp("setCnt0:", token, 8) == 0){
+            digital_io_counter_set_counter(0, atoll(&token[8]));
+        }
+        else if( is_for_me && strncmp("setCnt1:", token, 8) == 0){
+            digital_io_counter_set_counter(1, atoll(&token[8]));
+        }
+        else if( is_for_me && strncmp("setCnt2:", token, 8) == 0){
+            digital_io_counter_set_counter(2, atoll(&token[8]));
+        }
+        else if( is_for_me && strncmp("setCnt3:", token, 8) == 0){
+            digital_io_counter_set_counter(3, atoll(&token[8]));
+        }
+        else if( is_for_me && strncmp("setCnt4:", token, 8) == 0){
+            digital_io_counter_set_counter(4, atoll(&token[8]));
+        }
+        else if( is_for_me && strncmp("setCnt5:", token, 8) == 0){
+            digital_io_counter_set_counter(5, atoll(&token[8]));
+        }
+        else if( is_for_me && strncmp("setCnt6:", token, 8) == 0){
+            digital_io_counter_set_counter(6, atoll(&token[8]));
+        }
+        else if( is_for_me && strncmp("setCnt7:", token, 8) == 0){
+            digital_io_counter_set_counter(7, atoll(&token[8]));
+        }        
         else if( is_for_me && resp == RESPONSE_CONFIG && strncmp("cmd:reset", token, 9) == 0){
             Reset();
         }
@@ -196,6 +252,17 @@ void send_response_data()
     actual_len += sprintf(&(tx_buffer[actual_len]), ",adc0:%d.%02d,adc1:%d.%02d", 
             meas_values.adc0 / 1000, (meas_values.adc0/10) % 100, meas_values.adc1 / 1000, (meas_values.adc1/10) % 100);
     
+    actual_len += sprintf(&(tx_buffer[actual_len]), ",cnt0:%llu,cnt1:%llu,cnt2:%llu,cnt3:%llu,cnt4:%llu,cnt5:%llu,cnt6:%llu,cnt7:%llu", 
+            digital_io_counter_get_counter(0),
+            digital_io_counter_get_counter(1),
+            digital_io_counter_get_counter(2),
+            digital_io_counter_get_counter(3),
+            digital_io_counter_get_counter(4),
+            digital_io_counter_get_counter(5),
+            digital_io_counter_get_counter(6),
+            digital_io_counter_get_counter(7)
+    );
+    
     uint8_t crc = crc8( 0, tx_buffer, actual_len);
     actual_len += sprintf(&(tx_buffer[actual_len]), ",crc:%02x\r\n", crc);
     
@@ -214,6 +281,9 @@ void send_response_config()
     uint8_t crc = crc8( 0, tx_buffer, actual_len);
     actual_len += sprintf(&(tx_buffer[actual_len]), ",crc:%02x\r\n", crc);
     
+    // load new id to string for parsing
+    sprintf(myIdString, "id:%s,", eeprom_memory.device_name);
+    
     printf("%s", tx_buffer);
     
 }
@@ -231,6 +301,19 @@ void send_response_status()
     uint8_t crc = crc8( 0, tx_buffer, actual_len);
     actual_len += sprintf(&(tx_buffer[actual_len]), ",crc:%02x\r\n", crc);
     
+    printf("%s", tx_buffer); 
+}
+
+void send_response_badCrc()
+{
+    int actual_len = 0;
+    
+    actual_len += sprintf(tx_buffer, "id:%s,msg:badCrc", 
+        eeprom_memory.device_name);
+
+    uint8_t crc = crc8( 0, tx_buffer, actual_len);
+    actual_len += sprintf(&(tx_buffer[actual_len]), ",crc:%02x\r\n", crc);
+
     printf("%s", tx_buffer); 
 }
 

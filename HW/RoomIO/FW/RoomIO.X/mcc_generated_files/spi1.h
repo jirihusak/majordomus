@@ -1,21 +1,21 @@
 /**
-  @Generated PIC10 / PIC12 / PIC16 / PIC18 MCUs Header File
+  SPI1 Generated Driver API Header File
 
-  @Company:
+  @Company
     Microchip Technology Inc.
 
-  @File Name:
-    mcc.c
+  @File Name
+    spi1.h
 
-  @Summary:
-    This is the device_config.h file generated using PIC10 / PIC12 / PIC16 / PIC18 MCUs
+  @Summary
+    This is the generated header file for the SPI1 driver using PIC10 / PIC12 / PIC16 / PIC18 MCUs
 
-  @Description:
-    This header file provides implementations for driver APIs for all modules selected in the GUI.
+  @Description
+    This header file provides APIs for driver for SPI1.
     Generation Information :
         Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.81.6
         Device            :  PIC18LF57K42
-        Driver Version    :  2.00
+        Driver Version    :  3.0.0
     The generated drivers are tested against the following:
         Compiler          :  XC8 2.30 and above or later
         MPLAB             :  MPLAB X 5.40
@@ -44,12 +44,33 @@
     SOFTWARE.
 */
 
-#ifndef DEVICE_CONFIG_H
-#define	DEVICE_CONFIG_H
+#ifndef SPI1_MASTER_H
+#define SPI1_MASTER_H
 
-#define _XTAL_FREQ 64000000
-
-#endif	/* DEVICE_CONFIG_H */
 /**
- End of File
+  Section: Included Files
 */
+
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+/* SPI interfaces */
+typedef enum { 
+    SPI1_DEFAULT
+} spi1_modes_t;
+
+typedef void (*spi1InterruptHandler_t)(void);
+
+void SPI1_Initialize(void);
+bool SPI1_Open(spi1_modes_t spi1UniqueConfiguration);
+void SPI1_Close(void);
+uint8_t SPI1_ExchangeByte(uint8_t data);
+void SPI1_ExchangeBlock(void *block, size_t blockSize);
+void SPI1_WriteBlock(void *block, size_t blockSize);
+void SPI1_ReadBlock(void *block, size_t blockSize);
+void SPI1_WriteByte(uint8_t byte);
+uint8_t SPI1_ReadByte(void);
+void SPI1_ExchangeBlock12(void *block);
+
+#endif //SPI1_H
