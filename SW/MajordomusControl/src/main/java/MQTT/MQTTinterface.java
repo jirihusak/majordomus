@@ -7,12 +7,7 @@ package MQTT;
 import Configuration.ConfXmlObject.MQTTBroker;
 import Configuration.Configuration;
 import Devices.DeviceInterface;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Properties;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
@@ -31,6 +26,7 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 
 
 
@@ -46,6 +42,7 @@ public class MQTTinterface extends Thread {
     private final Semaphore eventMutex = new Semaphore(0); // Semaphore for synchronizing publishing events
     private MQTTBroker mqttConfig = null;
     private Devices.DeviceInterface devices = DeviceInterface.getInstance();
+    private boolean shouldStop = false;
 
     // Class to store MQTT data that will be published
     private class MqttData {
@@ -87,9 +84,10 @@ public class MQTTinterface extends Thread {
     @Override
     protected void finalize() {
         try {
-            client.disconnect();
-            // close client
-            client.close();
+            if (client != null && client.isConnected()) {
+                client.disconnect();
+                client.close();
+            }
         } catch (MqttException ex) {
             Logger.getLogger(MQTTinterface.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -99,114 +97,122 @@ public class MQTTinterface extends Thread {
     @Override
     public void run() {
 
-        System.out.println("Run thread.....");
+        System.out.println("MQTT thread starting.....");
 
         try {
-
-            SSLSocketFactory socketFactory = null;
-            // Check if the connection is SSL and set up SSL socket factory if needed
-            if (mqttConfig.address.startsWith("ssl")) {
-                System.out.println("SSL connection detected. Setting up SSL socket factory...");
-                if ("true".equalsIgnoreCase(mqttConfig.selfsigned)) {
-                    System.out.println("Using self-signed SSL certificate.");
-                    socketFactory = getSelfSignedSocketFactory(mqttConfig.cert);
-                } else {
-                    System.out.println("Using default SSL certificate validation.");
-                    socketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-                }
-            } else {
-                System.out.println("TCP connection detected.");
-            }
-
-            // Create the MQTT client
-            System.out.println("Creating MQTT client...");
-            client = new MqttClient(mqttConfig.address, MqttClient.generateClientId(), new MemoryPersistence());
-
-
-            MqttConnectOptions options = new MqttConnectOptions();
-            options.setUserName(mqttConfig.username);
-            options.setPassword(mqttConfig.passwd.toCharArray());
-            options.setConnectionTimeout(30);
-            options.setKeepAliveInterval(5);
-            options.setAutomaticReconnect(true);
-
-            if (socketFactory != null) {
-                options.setSocketFactory(socketFactory);
-                System.out.println("SSL Socket Factory set successfully.");
-            }
-            
-            client.setCallback(new MqttCallback() {
-
-                @Override
-                public void connectionLost(Throwable cause) {
-                    System.out.println("connectionLost: " + cause.getMessage());
-                }
-
-                @Override
-                public void messageArrived(String topic, MqttMessage message) {
-                    //System.out.println("Incoming msg: " + topic + " : " + message);
-                    devices.parseIncomingMQTTData(topic, new String(message.getPayload()));
-                }
-
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken imdt) {
-                    //throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-                }
-            });
-
-            // Connect to the broker with the configured options
-            System.out.println("Connecting to MQTT broker at: " + mqttConfig.address);
-            client.connect(options);
-            System.out.println("Connected to broker successfully.");
-
-            // Subscribe to the topic specified in the configuration
-            System.out.println("Subscribing to topic: " + mqttConfig.topic + "#");
-            client.subscribe(mqttConfig.topic + "#", 0);
-            System.out.println("Subscription successful.");
-
-        } catch (MqttException e) {
-
-            System.err.println("MQTT Exception occurred: " + e.getMessage());
-            e.printStackTrace(); // Handle MQTT specific exceptions
-            Logger.getLogger(MQTTinterface.class.getName()).log(Level.SEVERE, null, e);
-
+            initializeMQTTConnection();
         } catch (Exception e) {
-
-            System.err.println("General Exception occurred: " + e.getMessage());
-            e.printStackTrace(); // Handle general exceptions
-
+            System.err.println("Error initializing MQTT: " + e.getMessage());
+            e.printStackTrace();
+            return;
         }
 
-        while (true) {
+        // Message publishing loop
+        while (!shouldStop) {
             try {
                 eventMutex.acquire();
+
+                if (shouldStop) break;
 
                 while (!publishQueue.isEmpty()) {
                     MqttData data = publishQueue.take();
 
-                    MqttMessage msg = new MqttMessage();
-                    msg.setQos(data.qos);
-                    msg.setRetained(data.retain);
-                    msg.setPayload(data.data.getBytes());
+                    if (client != null && client.isConnected()) {
+                        MqttMessage msg = new MqttMessage();
+                        msg.setQos(data.qos);
+                        msg.setRetained(data.retain);
+                        msg.setPayload(data.data.getBytes());
 
-                    //System.out.println("Publish " + data.topic + ": " + msg);
-                    client.publish(data.topic, msg);
+                        //System.out.println("Publish " + data.topic + ": " + msg);
+                        client.publish(data.topic, msg);
+                    }
                 }
 
             } catch (InterruptedException ex) {
-                //Logger.getLogger(LightingModule.class.getName()).log(Level.SEVERE, null, ex);
+                if (shouldStop) break;
             } catch (NullPointerException e) {
-
+                System.err.println("NullPointerException in MQTT publish loop: " + e.getMessage());
             } catch (MqttException ex) {
                 Logger.getLogger(MQTTinterface.class.getName()).log(Level.SEVERE, null, ex);
             }
-
         }
+
+        System.out.println("MQTT thread stopped");
+    }
+
+    // Private method to initialize MQTT connection
+    private void initializeMQTTConnection() throws Exception {
+        System.out.println("Initializing MQTT connection...");
+
+        SSLSocketFactory socketFactory = null;
+        // Check if the connection is SSL and set up SSL socket factory if needed
+        if (mqttConfig.address.startsWith("ssl")) {
+            System.out.println("SSL connection detected. Setting up SSL socket factory...");
+            if ("true".equalsIgnoreCase(mqttConfig.selfsigned)) {
+                System.out.println("Using self-signed SSL certificate.");
+                socketFactory = getSelfSignedSocketFactory(mqttConfig.cert);
+            } else {
+                System.out.println("Using default SSL certificate validation.");
+                socketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            }
+        } else {
+            System.out.println("TCP connection detected.");
+        }
+
+        // Create the MQTT client
+        System.out.println("Creating MQTT client...");
+        client = new MqttClient(mqttConfig.address, MqttClient.generateClientId(), new MemoryPersistence());
+
+        MqttConnectOptions options = new MqttConnectOptions();
+        options.setUserName(mqttConfig.username);
+        options.setPassword(mqttConfig.passwd.toCharArray());
+        options.setConnectionTimeout(30);
+        options.setKeepAliveInterval(5);
+        options.setAutomaticReconnect(true);
+
+        if (socketFactory != null) {
+            options.setSocketFactory(socketFactory);
+            System.out.println("SSL Socket Factory set successfully.");
+        }
+
+        client.setCallback(new MqttCallbackExtended() {
+
+            @Override
+            public void connectionLost(Throwable cause) {
+                System.out.println("MQTT connectionLost: " + cause.getMessage());
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) {
+                //System.out.println("MQTT message arrived - Topic: " + topic + " : " + new String(message.getPayload()));
+                devices.parseIncomingMQTTData(topic, new String(message.getPayload()));
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken imdt) {
+                // Message delivery completed
+            }
+
+            @Override
+            public void connectComplete(boolean bln, String string) {
+                DeviceInterface.getInstance().publishHomeAssistantConfig();
+            }
+        });
+
+        // Connect to the broker with the configured options
+        System.out.println("Connecting to MQTT broker at: " + mqttConfig.address);
+        client.connect(options);
+        System.out.println("Connected to MQTT broker successfully.");
+
+        // Subscribe to the topic specified in the configuration
+        System.out.println("Subscribing to topic: " + mqttConfig.topic + "#");
+        client.subscribe(mqttConfig.topic + "#", 0);
+        System.out.println("MQTT Subscription successful.");
     }
 
     // Method to check if the MQTT client is connected
     public boolean isConnected() {
-        return client.isConnected();
+        return client != null && client.isConnected();
     }
 
     // Method to publish a message to the MQTT broker
@@ -219,6 +225,73 @@ public class MQTTinterface extends Thread {
 
         publishQueue.add(msg);
         eventMutex.release();
+    }
+    
+    public void publishRaw(String topic, String data, boolean retain, int qos) {
+        MqttData msg = new MqttData();
+        msg.qos = qos;
+        msg.topic = topic;
+        msg.retain = retain;
+        msg.data = data;
+
+        publishQueue.add(msg);
+        eventMutex.release();
+    }
+
+    // Reload configuration and restart MQTT connection
+    public synchronized void reloadConfiguration() {
+        System.out.println("Reloading MQTT configuration...");
+
+        try {
+            // Signal thread to stop
+            shouldStop = true;
+            eventMutex.release(); // Wake up the thread if it's waiting
+
+            // Zastavit staré připojení
+            if (client != null && client.isConnected()) {
+                System.out.println("Disconnecting from current MQTT broker...");
+                client.setCallback(null);
+                client.disconnect();
+                client.close();
+                client = null;
+            }
+
+            // Počkej aby vlákno skončilo
+            Thread.sleep(1000);
+
+            // Znovu načíst konfiguraci
+            if (Configuration.getXMLObj().getMQTTBroker().size() >= 1) {
+                mqttConfig = Configuration.getXMLObj().getMQTTBroker().get(0);
+                System.out.println("New MQTT broker configuration: " + mqttConfig.address);
+            } else {
+                System.out.println("No MQTT broker configuration found");
+                return;
+            }
+
+            // Vyčistit fronty
+            publishQueue.clear();
+            subscribeQueue.clear();
+
+            // Reset stop flag
+            shouldStop = false;
+
+            // Znovu spustit vlákno s novou konfigurací
+            if (!isAlive()) {
+                System.out.println("Restarting MQTT thread...");
+                start();
+            } else {
+                System.out.println("MQTT thread is still running, cannot restart");
+            }
+
+            System.out.println("MQTT configuration reloaded successfully");
+
+        } catch (InterruptedException e) {
+            System.err.println("InterruptedException during MQTT reload: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("Error reloading MQTT configuration: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     // Method to create an SSL socket factory for self-signed certificates

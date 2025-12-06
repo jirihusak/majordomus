@@ -6,10 +6,11 @@ package Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElementWrapper;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -23,8 +24,9 @@ public class ConfXmlObject {
     @XmlElement(name = "connection")
     private List<Connection> connections = new ArrayList<>();
     
-    public List<Connection> getConnectionsList() {return connections;}
-    public void setConnectionsList(List<Connection> newConnList) { connections = newConnList;}
+    @XmlTransient
+    public List<Connection> getConnections() {return connections;}
+    public void setConnections(List<Connection> newConnList) { connections = newConnList;}
         
     public static class Connection
     {
@@ -40,8 +42,9 @@ public class ConfXmlObject {
     @XmlElement(name = "device")
     private List<Device> devices = new ArrayList<>();
     
-    public List<Device> getDevicesList() {return devices;}
-    public void setDevicesList(List<Device> newDevList) { devices = newDevList;}
+    @XmlTransient
+    public List<Device> getDevices() {return devices;}
+    public void setDevices(List<Device> newDevList) { devices = newDevList;}
         
     public static class Device
     {
@@ -52,7 +55,7 @@ public class ConfXmlObject {
         @XmlAttribute(name = "type")
         public String type;
     }
-    //----------------- END CONNECTIONS ---------------------
+    //----------------- END DEVICE ---------------------
     
     //----------------- MQTT ---------------------
     @XmlElementWrapper(name = "MQTT")
@@ -75,8 +78,29 @@ public class ConfXmlObject {
         public String cert;
     }
     
+    @XmlTransient
     public List<MQTTBroker> getMQTTBroker() {return brokers;}
+    public void setMQTTBroker(List<MQTTBroker> newBroker) {brokers = newBroker;}
         
-    //----------------- END CONNECTIONS ---------------------
+    //----------------- END MQTT ---------------------
+    
+    //----------------- HOME ASSISTANT ---------------------
+    @XmlElementWrapper(name = "HomeAssistant")
+    @XmlElement(name = "settings")
+    private List<HASettings> haSettings = new ArrayList<>();
+    
+    public static class HASettings
+    {
+        @XmlAttribute(name = "enable")
+        public boolean enable;
+        @XmlAttribute(name = "topic")
+        public String topic;
+    }
+
+    @XmlTransient
+    public List<HASettings> getHASettings() {return haSettings;}
+    public void setHASettings(List<HASettings> newHaSettings) {haSettings = newHaSettings;}
+        
+    //----------------- HOME ASSISTANT ---------------------
 }
 

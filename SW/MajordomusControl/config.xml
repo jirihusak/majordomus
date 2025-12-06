@@ -21,14 +21,14 @@
 		This section specifies the devices connected to each physical connection defined earlier.
 		Each device element includes the connection it is associated with, the name of the device,
 		and its type. In this case, two devices are connected using "1NP": 
-		- "detskyPokojRS" of type "RoomSens" (which might refer to a Room Sensor).
+		- "detskyPokojRS" of type "RoomSensor" (which might refer to a Room Sensor).
 		- "detskyPokoj1" of type "RoomIO".
 		-->
 	<devices>
 		<device connection="1NP" name="detskyPokoj1" type="RoomIO"></device>
-		<device connection="1NP" name="test" type="RoomSens"></device>
+		<device connection="1NP" name="test" type="RoomSensor"></device>
 <!--
-		<device connection="2NP" name="test2" type="RoomSens"></device>
+		<device connection="2NP" name="test2" type="RoomSensor"></device>
 -->
 	</devices>
 
@@ -80,6 +80,14 @@
 		
 -->
 	</MQTT>
+
+<!--
+		Enable sending config message to Home Assistant SW
+-->
+	<HomeAssistant>
+        	<settings enable="true" topic="homeassistant/"/>
+    	</HomeAssistant>
+
 	
 
 </config>

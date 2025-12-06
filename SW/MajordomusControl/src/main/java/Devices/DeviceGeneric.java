@@ -1,7 +1,6 @@
 
 package Devices;
 
-import GUI.GuiModels;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -16,11 +15,13 @@ public abstract class DeviceGeneric {
     
     String connectionName;
     String name;
+    String type;
     boolean isRunning;
     LocalDateTime lastResponse;
     
     HashMap<String, DeviceProperty> propertyMap;
     protected List<String> cmdList = new ArrayList<>();
+    protected List<String> infList = new ArrayList<>();
     
     protected class DeviceProperty
     {
@@ -36,10 +37,11 @@ public abstract class DeviceGeneric {
         LocalDateTime lastSend;
     }	
 
-    public DeviceGeneric(String connectionName, String name)
+    public DeviceGeneric(String connectionName, String name, String type)
     {
         this.connectionName = connectionName;
         this.name = name;
+        this.type = type;
         //this.isRunningTimer = new Timer(name+"_running_timer");
         this.lastResponse = LocalDateTime.now();
         //this.logTimer = new Timer(name+"_log_timer");
@@ -50,10 +52,13 @@ public abstract class DeviceGeneric {
     // generic acces to device states
     public String getConnectionName() {return connectionName;}
     public String getName() {return name;}
+    public String getType() {return type;}
     public boolean isOnline() {return isRunning;}
     public abstract  void setDataByKey(String key, String data);
     public abstract String getDataByKey(String key);
     public List<String> getCmdList() {return cmdList; }
+    public List<String> getInfList() {return infList; }
+    public abstract void publishHomeAssistentConfig(String topic);
     
     // For Mqtt interface
     public abstract void cmdToDevice(String key, String value);
@@ -95,8 +100,9 @@ public abstract class DeviceGeneric {
         for (HashMap.Entry<String,Object> entry : data.entrySet())
         {
             setDataByKey(entry.getKey(), entry.getValue().toString());
-            GuiModels.getInstance().updateDeviceMap(name, entry.getKey(), entry.getValue().toString());
+            //GuiModels.getInstance().updateDeviceMap(name, entry.getKey(), entry.getValue().toString());
         }
+        updateLastResponse();
     }
     
     // Check if is device running

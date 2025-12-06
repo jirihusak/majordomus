@@ -4,7 +4,7 @@
  */
 package Devices;
 
-import GUI.GuiModels;
+//import GUI.GuiModels;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -18,8 +18,8 @@ public class TempOutBoard extends DeviceGeneric {
 
     private LocalDateTime lastStatusReq = LocalDateTime.MIN;
 
-    public TempOutBoard(String connectionName, String name) {
-        super(connectionName, name);
+    public TempOutBoard(String connectionName, String name, String type) {
+        super(connectionName, name, type);
 
         cmdList.addAll(Arrays.asList("ro", "do0", "do1", "do2", "do3", "do4", "do5", "do6", "do7", "do8", "do9"));
         for (String s : cmdList) {
@@ -106,7 +106,7 @@ public class TempOutBoard extends DeviceGeneric {
     public synchronized void cmdToDevice(String key, String value) {
 
         //System.out.println("----- Temp Out Board Cmd:" + key + ":" + value);
-        GuiModels.getInstance().updateDeviceMap(name, key, value);
+        //GuiModels.getInstance().updateDeviceMap(name, key, value);
 
         switch (key) {
             case "do0" ->
@@ -144,5 +144,10 @@ public class TempOutBoard extends DeviceGeneric {
         }
         
         return String.valueOf(result);
+    }
+
+    @Override
+    public void publishHomeAssistentConfig(String topic) {
+        
     }
 }

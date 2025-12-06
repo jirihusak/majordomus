@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Majordomus Control</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100%;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar .logo {
+            text-align: center;
+            padding: 20px;
+            font-weight: bold;
+            font-size: 20px;
+            background-color: #1a252f;
+        }
+        .sidebar .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px;
+        }
+        .sidebar .menu button {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            color: white;
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        .sidebar .menu button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .sidebar .menu button.active {
+            background-color: #3498db;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+        .content {
+            margin-left: 220px;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .command-input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .send-btn {
+            padding: 5px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .send-btn:hover {
+            background-color: #2980b9;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .delete-btn {
+            padding: 5px 10px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        .edit-btn {
+            padding: 5px 10px;
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .edit-btn:hover {
+            background-color: #e67e22;
+        }
+        .config-section {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .config-section h3 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            color: #2c3e50;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .form-row-full {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+        .save-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .device-info-card {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .device-info-card h3 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-online {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .status-offline {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .property-item {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+        }
+        .property-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .property-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .tree {
+            list-style: none;
+            padding-left: 0;
+        }
+        .tree li {
+            cursor: pointer;
+            margin: 5px 0;
+        }
+        .tree li::before {
+            content: "";
+            margin-right: 0;
+        }
+        .tree li.open::before {
+            content: "";
+        }
+        .tree ul {
+            list-style: none;
+            padding-left: 15px;
+        }
+        .tree li.device-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tree li.device-item:hover {
+            background-color: rgba(52, 152, 219, 0.2);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        .tree li.device-item.selected {
+            background-color: #3498db;
+            color: white;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+        .device-status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .device-status-dot.online {
+            background-color: #2ecc71;
+            box-shadow: 0 0 4px #2ecc71;
+        }
+        .device-status-dot.offline {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <img src="/img/logoWhite.png" alt="Majordomus" style="width: 100%; height: auto; display: block;">
+        </div>
+        <div class="menu">
+            <button class="active" onclick="showPage('devices', event)">Devices</button>
+            <button onclick="showPage('service', event)">Service</button>
+            <button onclick="showPage('settings', event)">Settings</button>
+        </div>
+        <div style="margin-top: auto; padding: 10px; border-top: 1px solid #34495e;">
+            <button style="display: block; width: 100%; background-color: rgba(255, 255, 255, 0.1); border: none; color: white; text-align: left; padding: 12px 16px; font-size: 14px; cursor: pointer; border-radius: 6px; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.backgroundColor='rgba(255, 255, 255, 0.1)'" onclick="window.open('https://majordomus.tech/kontakt', '_blank')">Contact</button>
+        </div>
+    </div>
+
+    <div class="content">
+        <div id="devices" class="page">
+            <h2>Devices</h2>
+            <div style="display: flex; gap: 20px;">
+                <div style="width: 250px;">
+                    <ul class="tree" id="deviceTree"></ul>
+                </div>
+                <div style="flex: 1;">
+                    <div id="deviceDetailsContainer"></div>
+                    <div id="deviceCommandsContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="service" class="page" style="display:none;">
+            <h2>Service</h2>
+            
+            <!-- Firmware Update Section -->
+            <div class="config-section">
+                <h3>🔄 Firmware Update</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Select Device:</label>
+                        <select id="updateDeviceSelect" onchange="filterFirmwareBySelectedDevice()">
+                            <option value="">-- Select Device --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Firmware:</label>
+                        <select id="firmwareSelect">
+                            <option value="">-- Select Firmware --</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button class="send-btn" onclick="startFirmwareUpdate()">🚀 Start Update</button>
+                </div>
+                
+                <!-- Progress Section -->
+                <div id="updateProgress" style="display: none; margin-top: 20px; padding: 15px; background-color: #ecf0f1; border-radius: 4px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <strong>Update Progress:</strong>
+                        <span id="updateStatus">Initializing...</span>
+                    </div>
+                    <div style="width: 100%; height: 30px; background-color: #bdc3c7; border-radius: 15px; overflow: hidden;">
+                        <div id="progressBar" style="width: 0%; height: 100%; background-color: #3498db; transition: width 0.3s;"></div>
+                    </div>
+                    <div id="updateResult" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Device ID Change Section -->
+            <div class="config-section">
+                <h3>✏️ Change Device ID</h3>
+                <div class="form-row-full">
+                    <div class="form-group">
+                        <label>Select Connection:</label>
+                        <select id="changeDeviceConnection" onchange="updateDeviceIDSelect()">
+                            <option value="">-- Select Connection --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Current Device ID:</label>
+                        <input type="text" id="currentDeviceID" placeholder="Select or type device ID" list="deviceIDList">
+                        <datalist id="deviceIDList"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label>New Device ID:</label>
+                        <input type="text" id="newDeviceID" placeholder="Enter new device ID">
+                    </div>
+                </div>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button class="send-btn" onclick="changeDeviceID()">💾 Change Device ID</button>
+                    <button class="send-btn" style="background-color: #9b59b6;" onclick="changeDeviceID50_50()">🔄 Change Device ID 50:50</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="settings" class="page" style="display:none;">
+            <h2>Settings</h2>
+            
+            <!-- MQTT Section -->
+            <div class="config-section">
+                <h3>🔌 MQTT Broker Configuration</h3>
+                <form id="mqttForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Address:</label>
+                            <input type="text" id="mqttAddress" placeholder="tcp://192.168.1.201:1883">
+                        </div>
+                        <div class="form-group">
+                            <label>Topic:</label>
+                            <input type="text" id="mqttTopic" placeholder="majordomus/">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Username:</label>
+                            <input type="text" id="mqttUsername">
+                        </div>
+                        <div class="form-group">
+                            <label>Password:</label>
+                            <input type="password" id="mqttPassword">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="mqttSelfsigned" style="width: auto;">
+                            <label style="margin: 0;">Self-signed certificate</label>
+                        </div>
+                        <div class="form-group" id="mqttCertGroup" style="display: none;">
+                            <label>Certificate file:</label>
+                            <input type="text" id="mqttCert" placeholder="ca.crt">
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Home Assistant Section -->
+            <div class="config-section">
+                <h3>🏠 Home Assistant Integration</h3>
+                <form id="haForm">
+                    <div class="form-row">
+                        <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="haEnabled" style="width: auto;">
+                            <label style="margin: 0;">Enable Home Assistant integration</label>
+                        </div>
+                        <div class="form-group">
+                            <label>Discovery Topic:</label>
+                            <input type="text" id="haTopic" placeholder="homeassistant/">
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Connections Section -->
+            <div class="config-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; border: none; padding: 0;">🔗 Serial Connections</h3>
+                    <button class="send-btn" onclick="addConnection()">+ Add Connection</button>
+                </div>
+                <table id="connectionsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Port Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Devices Section -->
+            <div class="config-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; border: none; padding: 0;">📱 Devices</h3>
+                    <button class="send-btn" onclick="addDevice()">+ Add Device</button>
+                </div>
+                <table id="devicesConfigTable">
+                    <thead>
+                        <tr>
+                            <th>Connection</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Save Button -->
+            <div class="save-section">
+                <button class="send-btn" style="background-color: #27ae60; font-size: 16px; padding: 10px 30px;" onclick="saveConfiguration()">💾 Save All Configuration</button>
+            </div>
+        </div>
+
+        <!-- Modal pro editaci connection -->
+        <div id="connectionModal" class="modal">
+            <div class="modal-content">
+                <h3 id="connectionModalTitle">Edit Connection</h3>
+                <form id="connectionForm" onsubmit="saveConnection(event)">
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" id="connName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Port Name:</label>
+                        <input type="text" id="connPort" required placeholder="COM3 or /dev/ttyUSB0">
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="submit" class="send-btn">Save</button>
+                        <button type="button" class="send-btn" style="background-color: #95a5a6;" onclick="closeModal('connectionModal')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal pro editaci device -->
+        <div id="deviceModal" class="modal">
+            <div class="modal-content">
+                <h3 id="deviceModalTitle">Edit Device</h3>
+                <form id="deviceForm" onsubmit="saveDevice(event)">
+                    <div class="form-group">
+                        <label>Connection:</label>
+                        <select id="devConnection" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" id="devName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Type:</label>
+                        <select id="devType" required>
+                            <option value="RoomIO">RoomIO</option>
+                            <option value="RoomSensor">RoomSensor</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="submit" class="send-btn">Save</button>
+                        <button type="button" class="send-btn" style="background-color: #95a5a6;" onclick="closeModal('deviceModal')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedDeviceId = null;
+        let devicesData = [];
+        let commandsConfig = {};
+        let connectionsConfig = [];
+        let devicesConfig = [];
+        let mqttConfig = {};
+        let haConfig = {};
+        let editingConnectionIndex = -1;
+        let editingDeviceIndex = -1;
+        let firmwareList = [];
+
+        async function loadDevices() {
+            try {
+                const res = await fetch('/api/devices');
+                if (!res.ok) return;
+                
+                devicesData = await res.json();
+                updateDeviceTree();
+                
+                if (selectedDeviceId) {
+                    const device = devicesData.find(d => d.id === selectedDeviceId);
+                    if (device) {
+                        showDeviceDetails(device, false);
+                    }
+                }
+            } catch (error) {
+                // Tiše ignoruj chyby
+            }
+        }
+
+        async function loadCommands() {
+            try {
+                const res = await fetch('/api/commands');
+                if (!res.ok) return;
+                
+                commandsConfig = await res.json();
+            } catch (error) {
+                // Tiše ignoruj chyby
+            }
+        }
+
+        async function loadConfiguration() {
+            try {
+                const res = await fetch('/api/config');
+                if (!res.ok) return;
+                
+                const config = await res.json();
+                connectionsConfig = config.connections || [];
+                devicesConfig = config.devices || [];
+                mqttConfig = config.mqtt || {};
+                haConfig = config.homeassistant || {};
+                
+                renderConnectionsTable();
+                renderDevicesConfigTable();
+                renderMqttConfig();
+                renderHaConfig();
+            } catch (error) {
+                // Tiše ignoruj chyby
+            }
+        }
+
+        function renderMqttConfig() {
+            document.getElementById('mqttAddress').value = mqttConfig.address || '';
+            document.getElementById('mqttUsername').value = mqttConfig.username || '';
+            document.getElementById('mqttPassword').value = mqttConfig.password || '';
+            document.getElementById('mqttTopic').value = mqttConfig.topic || '';
+            document.getElementById('mqttSelfsigned').checked = mqttConfig.selfsigned || false;
+            document.getElementById('mqttCert').value = mqttConfig.cert || '';
+            
+            toggleCertField();
+        }
+
+        function renderHaConfig() {
+            document.getElementById('haEnabled').checked = haConfig.enabled || false;
+            document.getElementById('haTopic').value = haConfig.topic || 'homeassistant/';
+        }
+
+        function toggleCertField() {
+            const selfsigned = document.getElementById('mqttSelfsigned').checked;
+            const certGroup = document.getElementById('mqttCertGroup');
+            const address = document.getElementById('mqttAddress').value;
+            
+            if (selfsigned && address.startsWith('ssl://')) {
+                certGroup.style.display = 'block';
+            } else {
+                certGroup.style.display = 'none';
+            }
+        }
+
+        // Event listeners pro MQTT formulář
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('mqttSelfsigned').addEventListener('change', toggleCertField);
+            document.getElementById('mqttAddress').addEventListener('input', toggleCertField);
+        });
+
+        function renderConnectionsTable() {
+            const tbody = document.querySelector('#connectionsTable tbody');
+            tbody.innerHTML = '';
+            
+            connectionsConfig.forEach((conn, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${conn.name}</td>
+                    <td>${conn.portName}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editConnection(${index})">Edit</button>
+                        <button class="delete-btn" onclick="deleteConnection(${index})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderDevicesConfigTable() {
+            const tbody = document.querySelector('#devicesConfigTable tbody');
+            tbody.innerHTML = '';
+            
+            devicesConfig.forEach((dev, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${dev.connection}</td>
+                    <td>${dev.name}</td>
+                    <td>${dev.type}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editDevice(${index})">Edit</button>
+                        <button class="delete-btn" onclick="deleteDevice(${index})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addConnection() {
+            editingConnectionIndex = -1;
+            document.getElementById('connectionModalTitle').textContent = 'Add Connection';
+            document.getElementById('connName').value = '';
+            document.getElementById('connPort').value = '';
+            document.getElementById('connectionModal').style.display = 'block';
+        }
+
+        function editConnection(index) {
+            editingConnectionIndex = index;
+            const conn = connectionsConfig[index];
+            document.getElementById('connectionModalTitle').textContent = 'Edit Connection';
+            document.getElementById('connName').value = conn.name;
+            document.getElementById('connPort').value = conn.portName;
+            document.getElementById('connectionModal').style.display = 'block';
+        }
+
+        function deleteConnection(index) {
+            if (confirm('Are you sure you want to delete this connection?')) {
+                connectionsConfig.splice(index, 1);
+                renderConnectionsTable();
+            }
+        }
+
+        function saveConnection(event) {
+            event.preventDefault();
+            
+            const conn = {
+                name: document.getElementById('connName').value,
+                portName: document.getElementById('connPort').value
+            };
+            
+            if (editingConnectionIndex === -1) {
+                connectionsConfig.push(conn);
+            } else {
+                connectionsConfig[editingConnectionIndex] = conn;
+            }
+            
+            renderConnectionsTable();
+            updateDeviceConnectionOptions();
+            closeModal('connectionModal');
+        }
+
+        function addDevice() {
+            editingDeviceIndex = -1;
+            document.getElementById('deviceModalTitle').textContent = 'Add Device';
+            document.getElementById('devConnection').value = '';
+            document.getElementById('devName').value = '';
+            document.getElementById('devType').value = 'RoomSensor';
+            updateDeviceConnectionOptions();
+            document.getElementById('deviceModal').style.display = 'block';
+        }
+
+        function editDevice(index) {
+            editingDeviceIndex = index;
+            const dev = devicesConfig[index];
+            document.getElementById('deviceModalTitle').textContent = 'Edit Device';
+            updateDeviceConnectionOptions();
+            document.getElementById('devConnection').value = dev.connection;
+            document.getElementById('devName').value = dev.name;
+            document.getElementById('devType').value = dev.type;
+            document.getElementById('deviceModal').style.display = 'block';
+        }
+
+        function deleteDevice(index) {
+            if (confirm('Are you sure you want to delete this device?')) {
+                devicesConfig.splice(index, 1);
+                renderDevicesConfigTable();
+            }
+        }
+
+        function saveDevice(event) {
+            event.preventDefault();
+            
+            const dev = {
+                connection: document.getElementById('devConnection').value,
+                name: document.getElementById('devName').value,
+                type: document.getElementById('devType').value
+            };
+            
+            if (editingDeviceIndex === -1) {
+                devicesConfig.push(dev);
+            } else {
+                devicesConfig[editingDeviceIndex] = dev;
+            }
+            
+            renderDevicesConfigTable();
+            closeModal('deviceModal');
+        }
+
+        function updateDeviceConnectionOptions() {
+            const select = document.getElementById('devConnection');
+            select.innerHTML = '';
+            
+            connectionsConfig.forEach(conn => {
+                const option = document.createElement('option');
+                option.value = conn.name;
+                option.textContent = conn.name;
+                select.appendChild(option);
+            });
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        async function saveConfiguration() {
+            try {
+                // Načti MQTT konfiguraci z formuláře
+                mqttConfig = {
+                    address: document.getElementById('mqttAddress').value,
+                    username: document.getElementById('mqttUsername').value,
+                    password: document.getElementById('mqttPassword').value,
+                    topic: document.getElementById('mqttTopic').value,
+                    selfsigned: document.getElementById('mqttSelfsigned').checked,
+                    cert: document.getElementById('mqttCert').value
+                };
+                
+                // Načti Home Assistant konfiguraci
+                haConfig = {
+                    enabled: document.getElementById('haEnabled').checked,
+                    topic: document.getElementById('haTopic').value
+                };
+                
+                const config = {
+                    mqtt: mqttConfig,
+                    homeassistant: haConfig,
+                    connections: connectionsConfig,
+                    devices: devicesConfig
+                };
+                
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                
+                if (res.ok) {
+                    alert('Configuration saved successfully!');
+                    // reload data
+                    loadDevices();
+                    loadConfiguration();
+                    loadCommands();
+                } else {
+                    alert('Error saving configuration!');
+                }
+            } catch (error) {
+                alert('Error saving configuration!');
+            }
+        }
+
+        function updateDeviceTree() {
+            const tree = document.getElementById('deviceTree');
+            tree.innerHTML = '';
+
+            const connections = {};
+            devicesData.forEach(dev => {
+                if (!connections[dev.connection]) connections[dev.connection] = [];
+                connections[dev.connection].push(dev);
+            });
+
+            for (const [connection, devs] of Object.entries(connections)) {
+                const connectionNode = document.createElement('li');
+                connectionNode.textContent = connection;
+                const ul = document.createElement('ul');
+
+                devs.forEach(d => {
+                    const li = document.createElement('li');
+                    li.className = 'device-item';
+                    
+                    // Přidej status kolečko
+                    const isOnline = d.online === 1 || d.online === '1' || d.online === true;
+                    const statusDot = document.createElement('span');
+                    statusDot.className = `device-status-dot ${isOnline ? 'online' : 'offline'}`;
+                    
+                    li.appendChild(statusDot);
+                    li.appendChild(document.createTextNode(d.id));
+                    
+                    if (d.id === selectedDeviceId) {
+                        li.classList.add('selected');
+                    }
+                    li.onclick = (e) => {
+                        e.stopPropagation();
+                        showDeviceDetails(d, true);
+                        showDeviceCommands(d);
+                    };
+                    ul.appendChild(li);
+                });
+
+                connectionNode.appendChild(ul);
+                connectionNode.classList.add('open');
+                tree.appendChild(connectionNode);
+            }
+        }
+
+        function showDeviceDetails(device, updateSelection = true) {
+            if (updateSelection) {
+                selectedDeviceId = device.id;
+                updateDeviceTree();
+            }
+
+            const container = document.getElementById('deviceDetailsContainer');
+
+            // Online status
+            const isOnline = device.online === 1 || device.online === '1' || device.online === true;
+            const statusBadge = `<span class="status-badge ${isOnline ? 'status-online' : 'status-offline'}">${isOnline ? 'ONLINE' : 'OFFLINE'}</span>`;
+
+            // Device Properties sekce
+            let propertiesHtml = '<div class="device-info-card"><h3>📊  '+ device.id + '  (' + device.type + ')' + statusBadge + '</h3><div class="property-grid">';
+
+            // Iteruj přes properties array
+            if (device.properties && Array.isArray(device.properties)) {
+                device.properties.forEach(prop => {
+                    propertiesHtml += `
+                        <div class="property-item">
+                            <div class="property-label">${prop.key}</div>
+                            <div class="property-value">${prop.value}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            propertiesHtml += '</div></div>';
+
+            container.innerHTML = propertiesHtml;
+        }
+        
+        function showDeviceCommands(device) {
+            
+            const container = document.getElementById('deviceCommandsContainer');
+            
+            // Commands sekce (stejná jako předtím)
+            const deviceKey = `${device.connection}/${device.id}`;
+            const commands = commandsConfig[deviceKey];
+
+            let commandsHtml = '<div class="device-info-card"><h3>⚙️ Commands</h3>';
+
+            if (commands && commands.length > 0) {
+                commandsHtml += '<table style="margin-top: 15px;"><thead><tr><th>Command</th><th>Value</th><th>Action</th></tr></thead><tbody>';
+                commands.forEach(cmd => {
+                    const inputId = `cmd_${cmd}`;
+                    commandsHtml += `
+                        <tr>
+                            <td>${cmd}</td>
+                            <td><input type="text" class="command-input" id="${inputId}" placeholder="value"></td>
+                            <td><button class="send-btn" onclick="sendCommand('${device.id}', '${cmd}', '${inputId}')">Send</button></td>
+                        </tr>
+                    `;
+                });
+                commandsHtml += '</tbody></table>';
+            } else {
+                commandsHtml += '<p style="text-align: center; color: #999; margin-top: 15px;">No commands available</p>';
+            }
+
+            commandsHtml += '</div>';
+
+            container.innerHTML = commandsHtml;
+        }
+
+        async function sendCommand(deviceId, command, inputId) {
+            const input = document.getElementById(inputId);
+            const value = input.value;
+           
+            try {
+                const res = await fetch('/api/device/send-command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        deviceId: deviceId,
+                        command: command,
+                        value: value
+                    })
+                });
+                
+                if (res.ok) {
+                    alert(`Device ID changed from ${currentID} to ${newID} successfully!`);
+                    
+                } else {
+                    alert('Error changing device ID!');
+
+                }
+            } catch (error) {
+            }
+        }
+
+        function showPage(id, event) {
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+            document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (id === 'settings') {
+                loadConfiguration();
+            } else if (id === 'service') {
+                populateServiceDeviceSelects();
+                loadFirmwareList();
+            }
+        }
+
+        function populateServiceDeviceSelects() {
+            const updateSelect = document.getElementById('updateDeviceSelect');
+            const connectionSelect = document.getElementById('changeDeviceConnection');
+            
+            updateSelect.innerHTML = '<option value="">-- Select Device --</option>';
+            connectionSelect.innerHTML = '<option value="">-- Select Connection --</option>';
+            
+            // Popuuj Connection select pro Device ID change
+            const connections = new Set();
+            devicesData.forEach(dev => {
+                connections.add(dev.connection);
+            });
+            
+            connections.forEach(conn => {
+                const option = document.createElement('option');
+                option.value = conn;
+                option.textContent = conn;
+                connectionSelect.appendChild(option);
+            });
+            
+            // Popuuj Device select pro Firmware update
+            devicesData.forEach(dev => {
+                const option1 = document.createElement('option');
+                option1.value = dev.id;
+                option1.textContent = `${dev.connection}/${dev.id} (${dev.type})`;
+                updateSelect.appendChild(option1);
+            });
+        }
+
+        function updateDeviceIDSelect() {
+            const connectionSelect = document.getElementById('changeDeviceConnection');
+            const connection = connectionSelect.value;
+            const deviceIDList = document.getElementById('deviceIDList');
+            const currentDeviceID = document.getElementById('currentDeviceID');
+            
+            deviceIDList.innerHTML = '';
+            currentDeviceID.value = '';
+            
+            if (!connection) return;
+            
+            // Najdi všechna zařízení pro vybranou connection
+            devicesData.forEach(dev => {
+                if (dev.connection === connection) {
+                    const option = document.createElement('option');
+                    option.value = dev.id;
+                    deviceIDList.appendChild(option);
+                }
+            });
+        }
+
+        async function loadFirmwareList() {
+            try {
+                const res = await fetch('/api/firmware/list');
+                if (!res.ok) return;
+
+                firmwareList = await res.json(); // uložíme FW
+
+                // Po načtení FW přebudujeme combobox podle vybraného device
+                filterFirmwareBySelectedDevice();
+
+            } catch (error) {
+                addLog('Error loading firmware list');
+            }
+        }
+        
+        function filterFirmwareBySelectedDevice() {
+            const deviceId = document.getElementById('updateDeviceSelect').value;
+            const select = document.getElementById('firmwareSelect');
+
+            select.innerHTML = '<option value="">-- Select Firmware --</option>';
+
+            if (!deviceId) return; // není vybrán device → prázdný combobox
+
+            // Najdi device podle ID
+            const dev = devicesData.find(d => d.id == deviceId);
+            if (!dev) return;
+
+            // Najdi firmware pro daný typ zařízení
+            const fw = firmwareList.find(f => f.deviceType === dev.type);
+            if (!fw) return;
+
+            // Naplň combobox
+            fw.versions.forEach(ver => {
+                const option = document.createElement('option');
+                option.value = ver;
+                option.textContent = `${ver}`;
+                select.appendChild(option);
+            });
+
+            //addLog(`Filtered firmware for device type ${dev.type}`);
+        }
+
+        async function startFirmwareUpdate() {
+            const deviceId = document.getElementById('updateDeviceSelect').value;
+            const firmwareVersion = document.getElementById('firmwareSelect').value;
+
+            if (!deviceId || !firmwareVersion) {
+                alert('Please select both device and firmware!');
+                return;
+            }
+
+            // Najdi zařízení a jeho typ
+            const device = devicesData.find(d => d.id == deviceId);
+            if (!device) {
+                alert('Device not found!');
+                return;
+            }
+
+            const progressDiv = document.getElementById('updateProgress');
+            const progressBar = document.getElementById('progressBar');
+            const statusSpan = document.getElementById('updateStatus');
+            const resultDiv = document.getElementById('updateResult');
+
+            progressDiv.style.display = 'block';
+            resultDiv.style.display = 'none';
+            progressBar.style.width = '0%';
+            statusSpan.textContent = 'Starting update...';
+
+            //console.log(`Starting firmware update for ${deviceId} (${device.type}) fw ${firmwareVersion}`);
+
+            try {
+                const res = await fetch('/api/firmware/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        deviceId: deviceId,
+                        deviceType: device.type,
+                        connection: device.connection,
+                        version: firmwareVersion
+                    })
+                });
+
+                if (!res.ok) throw new Error('Update failed');
+
+                startProgressPolling();
+
+            } catch (error) {
+                statusSpan.textContent = 'Update failed!';
+                resultDiv.style.display = 'block';
+                resultDiv.style.backgroundColor = '#e74c3c';
+                resultDiv.style.color = 'white';
+                resultDiv.textContent = 'Error: ' + error.message;
+                //addLog('Update failed: ' + error.message);
+            }
+        }
+
+        function startProgressPolling() {
+
+            const progressBar = document.getElementById('progressBar');
+            const statusSpan = document.getElementById('updateStatus');
+            const resultDiv = document.getElementById('updateResult');
+
+            let interval = setInterval(async () => {
+                const res = await fetch(`/api/firmware/progress`);
+                const data = await res.json();
+
+                progressBar.style.width = data.progress + "%";
+                statusSpan.textContent = `Updating... ${data.progress}%`;
+
+                if (data.done == 1) {
+                    clearInterval(interval);
+
+                    statusSpan.textContent = "Completed!";
+                    resultDiv.style.display = "block";
+                    resultDiv.style.backgroundColor = "#2ecc71";
+                    resultDiv.style.color = "white";
+                    resultDiv.textContent = "✓ Firmware update completed!";
+                }
+                else if(data.error != 0) 
+                {
+                    clearInterval(interval);
+                    
+                    statusSpan.textContent = 'Update failed!';
+                    resultDiv.style.display = 'block';
+                    resultDiv.style.backgroundColor = '#e74c3c';
+                    resultDiv.style.color = 'white';
+                    resultDiv.textContent = 'Error: ' + data.error;
+                }
+            }, 100);
+        }
+
+
+        async function changeDeviceID() {
+            const connection = document.getElementById('changeDeviceConnection').value;
+            const currentID = document.getElementById('currentDeviceID').value.trim();
+            const newID = document.getElementById('newDeviceID').value.trim();
+            
+            if (!connection || !currentID || !newID) {
+                alert('Please fill in all fields!');
+                return;
+            }
+            
+            if (currentID === newID) {
+                alert('New Device ID must be different from current ID!');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/device/change-id', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        connection: connection,
+                        currentID: currentID,
+                        newID: newID,
+                        mode: 'full'
+                    })
+                });
+                
+                if (res.ok) {
+                    alert(`Device ID changed from ${currentID} to ${newID} successfully!`);
+                    addLog(`Device ID changed: ${connection}/${currentID} → ${connection}/${newID}`);
+                    document.getElementById('currentDeviceID').value = '';
+                    document.getElementById('newDeviceID').value = '';
+                    document.getElementById('changeDeviceConnection').value = '';
+                    loadDevices();
+                } else {
+                    alert('Error changing device ID!');
+                    addLog('Error changing device ID');
+                }
+            } catch (error) {
+                alert('Error changing device ID!');
+                addLog(`Error: ${error.message}`);
+            }
+        }
+
+        async function changeDeviceID50_50() {
+            const connection = document.getElementById('changeDeviceConnection').value;
+            const currentID = document.getElementById('currentDeviceID').value.trim();
+            const newID = document.getElementById('newDeviceID').value.trim();
+            
+            if (!connection || !currentID || !newID) {
+                alert('Please fill in all fields!');
+                return;
+            }
+            
+            if (currentID === newID) {
+                alert('New Device ID must be different from current ID!');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/device/change-id', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        connection: connection,
+                        currentID: currentID,
+                        newID: newID,
+                        mode: '50-50'
+                    })
+                });
+                
+                if (res.ok) {
+                    alert(`Device ID changed (50:50 mode) from ${currentID} to ${newID} successfully!`);
+                    addLog(`Device ID changed (50:50 mode): ${connection}/${currentID} → ${connection}/${newID}`);
+                    document.getElementById('currentDeviceID').value = '';
+                    document.getElementById('newDeviceID').value = '';
+                    document.getElementById('changeDeviceConnection').value = '';
+                    loadDevices();
+                } else {
+                    alert('Error changing device ID!');
+                    addLog('Error changing device ID');
+                }
+            } catch (error) {
+                alert('Error changing device ID!');
+                addLog(`Error: ${error.message}`);
+            }
+        }
+
+        function addLog(message) {
+            const logsDiv = document.getElementById('systemLogs');
+            const now = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${now}] ${message}`;
+            logsDiv.appendChild(logEntry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        // Zavření modálu kliknutím mimo něj
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Inicializace aplikace
+        async function initializeApp() {
+            try {
+                // Počkej na obě funkce paralelně
+                await Promise.all([
+                    loadDevices(),
+                    loadCommands()
+                ]);
+                
+                console.log("Commands loaded:", commandsConfig);
+                console.log("Devices loaded:", devicesData);
+                
+                // Po prvním načtení dat, vyber první device automaticky
+                if (devicesData.length > 0) {
+                    console.log("Selecting first device:", devicesData[0]);
+                    showDeviceDetails(devicesData[0], true);
+                    showDeviceCommands(devicesData[0]);
+                }
+                
+            } catch (error) {
+                console.error("Error during initialization:", error);
+            }
+        }
+        
+        // Spusti inicializaci
+        initializeApp();
+        
+        // Auto-refresh každých 500 ms 
+        setInterval(loadDevices, 500);
+    </script>
+</body>
+</html>

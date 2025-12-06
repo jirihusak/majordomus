@@ -4,11 +4,12 @@
  */
 package MajordomusControl;
 
-import GUI.AppGUI;
-import javafx.application.Application;
+//import GUI.AppGUI;
+//import javafx.application.Application;
 import Configuration.Configuration;
 import MQTT.MQTTinterface;
 import SerialCom.SerialCommunication;
+import Web.WebInterface;
 import java.util.ArrayList;
 import java.util.List;
 /**
@@ -21,6 +22,8 @@ public class MainClass {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        
+        System.out.println("Starting");
                 
         Thread.currentThread().setName("Main");
         
@@ -36,10 +39,13 @@ public class MainClass {
         // init MQTT client
         MQTTinterface.getInstance();
         
+        // start we interface
+        WebInterface.getInstance();
+        
         // start GUI
-        if(args.length > 0 && args[0].equals("-gui")){
-            Application.launch(AppGUI.class, args);
-        }
+//        if(args.length > 0 && args[0].equals("-gui")){
+//            Application.launch(AppGUI.class, args);
+//        }
     }
     
 }
