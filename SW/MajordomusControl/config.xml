@@ -8,8 +8,8 @@
 		Here, we have one connection named "1NP" that uses the port "/dev/ttyUSB3".
 		-->
 	<connections>
-		<connection name="1NP" portName="COM9"></connection>
 <!--
+		<connection name="1NP" portName="COM9"></connection>
 		<connection name="2NP" portName="/dev/ttyUSB1"></connection>
 -->
 
