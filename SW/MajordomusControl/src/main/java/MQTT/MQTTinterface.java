@@ -1,6 +1,27 @@
 /*
-http://www.mqtt-dashboard.com/#  -test mqtt broker
-
+ * MajordomusControl - Home Automation Gateway
+ * MQTT client thread: connects to the configured broker (TCP or SSL/TLS),
+ * publishes device data on categorised topics (state/tele/evt),
+ * subscribes to command topics (<prefix>/<device>/cmd/#) and routes
+ * incoming messages to DeviceInterface. Supports Home Assistant MQTT discovery.
+ *
+ * Copyright (C) 2024  Ing. Jiří Husák
+ * Author:  Ing. Jiří Husák
+ * Contact: info@majordomus.tech
+ * Website: www.majordomus.tech
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 package MQTT;
 
@@ -184,7 +205,6 @@ public class MQTTinterface extends Thread {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) {
-                //System.out.println("MQTT message arrived - Topic: " + topic + " : " + new String(message.getPayload()));
                 devices.parseIncomingMQTTData(topic, new String(message.getPayload()));
             }
 
@@ -195,6 +215,13 @@ public class MQTTinterface extends Thread {
 
             @Override
             public void connectComplete(boolean bln, String string) {
+                System.out.println("MQTT connectComplete (reconnect=" + bln + ")");
+                try {
+                    client.subscribe(mqttConfig.topic + "#", 0);
+                    System.out.println("MQTT re-subscribed to: " + mqttConfig.topic + "#");
+                } catch (MqttException ex) {
+                    System.err.println("MQTT re-subscribe failed: " + ex.getMessage());
+                }
                 DeviceInterface.getInstance().publishHomeAssistantConfig();
             }
         });
@@ -275,13 +302,9 @@ public class MQTTinterface extends Thread {
             // Reset stop flag
             shouldStop = false;
 
-            // Znovu spustit vlákno s novou konfigurací
-            if (!isAlive()) {
-                System.out.println("Restarting MQTT thread...");
-                start();
-            } else {
-                System.out.println("MQTT thread is still running, cannot restart");
-            }
+            // Znovu spustit MQTT - vytvořit novou instanci (Java Thread nelze znovu spustit po ukončení)
+            System.out.println("Restarting MQTT thread...");
+            singletonInstace = new MQTTinterface();
 
             System.out.println("MQTT configuration reloaded successfully");
 

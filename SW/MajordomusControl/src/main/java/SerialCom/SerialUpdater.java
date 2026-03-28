@@ -1,7 +1,26 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * MajordomusControl - Home Automation Gateway
+ * Firmware OTA updater over RS-485 using the Majordomus bootloader protocol.
+ * Parses Intel HEX files, encodes 128-byte memory blocks in Base64 and
+ * transmits them to the target device (erase → data upload → jumpToApp).
+ *
+ * Copyright (C) 2024  Ing. Jiří Husák
+ * Author:  Ing. Jiří Husák
+ * Contact: info@majordomus.tech
+ * Website: www.majordomus.tech
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 package SerialCom;
 
@@ -75,20 +94,25 @@ public class SerialUpdater {
 
         String[] keyValuePairs = data.split(",");
         for (String pair : keyValuePairs) {
-            // split value :
-            String[] entry = pair.split(":");
+            if (!pair.contains(":")) {
+                continue;
+            }
 
-            String key = entry[0];
-            Object value = entry.length > 1 ? entry[1] : 0; // Pokud není hodnota k dispozici, nastavte na null
+            String[] entry = pair.split(":", 2);
+            String key = entry[0].trim();
+            String value = entry[1].trim();
 
-            // Uložte hodnotu do mapy, můžete také provést konverzi hodnoty podle potřeby
             msgData.put(key, value);
-
         }
 
-        String recvDeviceName = msgData.get("id").toString();
-        String recvType = msgData.get("msg").toString();
-        String recvStatus = msgData.get("resp").toString();
+        String recvDeviceName = (String) msgData.get("id");
+        String recvType       = (String) msgData.get("msg");
+        String recvStatus     = (String) msgData.get("resp");
+        
+        if (recvDeviceName == null || recvType == null || recvStatus == null) {
+            return;
+        }
+        
 
         if (recvDeviceName.equals(deviceName) && recvType.equals("bl") && recvStatus.equals("dataOK")) {
             semaphoreWaitForResponse.release();
@@ -269,7 +293,7 @@ public class SerialUpdater {
         String msg;
 
         try {
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException ex) {
             return;
         }
@@ -281,7 +305,7 @@ public class SerialUpdater {
         SerialCommunication.getInstance().sendAsyncMsg(connection, msg);
 
         try {
-            Thread.sleep(500);
+            Thread.sleep(2500);
         } catch (InterruptedException ex) {
             return;
         }
@@ -293,7 +317,7 @@ public class SerialUpdater {
         SerialCommunication.getInstance().sendAsyncMsg(connection, msg);
 
         try {
-            Thread.sleep(2000);
+            Thread.sleep(3000);
         } catch (InterruptedException ex) {
             return;
         }
@@ -309,15 +333,13 @@ public class SerialUpdater {
                 System.out.println(java.time.LocalDateTime.now() + ":" + msg);
                 SerialCommunication.getInstance().sendAsyncMsg(connection, msg);
 
-                
-
                 // wait for response
-                if (!semaphoreWaitForResponse.tryAcquire(300, TimeUnit.MILLISECONDS)) {
+                if (!semaphoreWaitForResponse.tryAcquire(150, TimeUnit.MILLISECONDS)) {
                     System.out.println("BL - No response from device!");
                 }
-                
+
                 try {
-                    Thread.sleep(30);
+                    Thread.sleep(40);
                 } catch (InterruptedException ex) {
                     return;
                 }

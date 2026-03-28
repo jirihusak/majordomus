@@ -1,11 +1,27 @@
 /*
-
-Objekt udrzuje az 4 spojeni seriove porty - singleton
-public funkce pro odeslilani bytearray
-listenery pro prijem zpravy - kontrola, jestli je validni, crc atd...
-
-
-
+ * MajordomusControl - Home Automation Gateway
+ * RS-485 serial communication manager (singleton).
+ * Manages up to 4 serial connections; runs a polling loop (100 ms per device)
+ * that sends requests and waits up to 700 ms for a response.
+ * Validates incoming messages with CRC-8 and forwards them to DeviceInterface.
+ *
+ * Copyright (C) 2024  Ing. Jiří Husák
+ * Author:  Ing. Jiří Husák
+ * Contact: info@majordomus.tech
+ * Website: www.majordomus.tech
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 package SerialCom;
 
@@ -36,7 +52,7 @@ public final class SerialCommunication {
     private List<ConfXmlObject.Device> devicesList = null;
     //private SerialProtocol protocol = null;
     private final int poolInterval = 100; // 1 device cca 30 ms
-    private boolean communicationActive = true;
+    private volatile boolean communicationActive = true;
     private SerialUpdater updater;
 
     public static synchronized SerialCommunication getInstance() {
@@ -77,14 +93,12 @@ public final class SerialCommunication {
         System.out.println("Reloading SerialCommunication configuration...");
 
         try {
-            // Zastavit komunikaci
+            // Zastavit komunikaci a ukončit stará vlákna
             stopDataPooling();
-            Thread.sleep(500);
-
-            // Odpojit všechna existující připojení
             for (ConnectionThread conn : connections) {
-                conn.connectionDisconnect();
+                conn.stopThread();
             }
+            Thread.sleep(500);
 
             // Vyčistit seznam
             connections.clear();
@@ -143,9 +157,9 @@ public final class SerialCommunication {
         private final String portName;
         private final int baudRate;
         private final SerialConnection serialCon;
-        //private boolean communicationActive = false;
+        private volatile boolean shouldRun = true;
 
-        // synchronization serial 
+        // synchronization serial
         private final Lock lock;
         private final Condition msgReceived;
         private long begin;
@@ -189,12 +203,13 @@ public final class SerialCommunication {
         private void poolAllDevices() {
             for (String device : devicesName) {
 
+                //lock.lock();
                 connectionDataSend(DeviceInterface.getInstance().getSendSerialData(device));
 
                 // wait for reply
                 lock.lock();
                 try {
-                    boolean code = msgReceived.await(100, TimeUnit.MILLISECONDS);
+                    boolean code = msgReceived.await(700, TimeUnit.MILLISECONDS);
                     if (code == false) {
                         //System.err.println(java.time.LocalDateTime.now() + " Device not responding:" + device);
                     }
@@ -215,25 +230,21 @@ public final class SerialCommunication {
 
         private void connectionDataReceived(String data) {
 
-            System.out.println(java.time.LocalDateTime.now() + " RX " + portName + ":" + data);
+            //System.out.println(java.time.LocalDateTime.now() + " RX " + portName + ":" + data);
+            lastResponse = Instant.now().toEpochMilli();
+            
             //protocol.protocolParseReceivedData(connectionName, data);
-            DeviceInterface.getInstance().parseIncomingSerialData(data);
+            boolean lastMsg = DeviceInterface.getInstance().parseIncomingSerialData(data);
             updater.parseSerialMsg(portName, data);
             
-            lastResponse = Instant.now().toEpochMilli();
-
-            try {
-                //P040_ServicePageController.getInstance().addMessage(connectionName, data);
-            } catch (NullPointerException e) {
-                System.err.println(e);
-            }
-
-            lock.lock();
-            try {
-                msgReceived.signal();
-            } finally {
-                lock.unlock();
-            }
+            //if(lastMsg) {
+                lock.lock();
+                try {
+                    msgReceived.signal();
+                } finally {
+                    lock.unlock();
+                }
+            //}
         }
 
         private void connectionDataSend(String data) {
@@ -256,6 +267,12 @@ public final class SerialCommunication {
             serialCon.disconnect();
         }
 
+        public void stopThread() {
+            shouldRun = false;
+            connectionDisconnect();
+            this.interrupt();
+        }
+
         @Override
         public void run() {
 
@@ -265,7 +282,7 @@ public final class SerialCommunication {
                 System.err.println(ex);
             }
 
-            while (true) {
+            while (shouldRun) {
                 begin = Instant.now().toEpochMilli();
 
                 if (communicationActive) {

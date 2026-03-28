@@ -281,6 +281,48 @@
         .device-status-dot.offline {
             background-color: #e74c3c;
         }
+        .ir-display {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            grid-column: 1 / -1;  /* Zaberou celou šířku gridu */
+        }
+
+        .ir-container {
+            position: relative;
+        }
+
+        .temperature-scale {
+            display: flex;
+            gap: 10px;
+        }
+
+        .scale-labels {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 240px;
+            font-size: 12px;
+        }
+
+        .temp-info {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #666;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+            white-space: nowrap;
+            color: white;
+        }
+
+        .temp-value {
+            font-weight: bold;
+            color: #ff6b35;
+        }
     </style>
 </head>
 <body>
@@ -517,6 +559,7 @@
                         <select id="devType" required>
                             <option value="RoomIO">RoomIO</option>
                             <option value="RoomSensor">RoomSensor</option>
+                            <option value="RoomIR">RoomIR</option>
                         </select>
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -539,6 +582,8 @@
         let editingConnectionIndex = -1;
         let editingDeviceIndex = -1;
         let firmwareList = [];
+        let lastRenderedDeviceId = null;
+        let irCanvasCache = new Map(); // Cache pro IR canvas data
 
         async function loadDevices() {
             try {
@@ -866,6 +911,14 @@
 
             const container = document.getElementById('deviceDetailsContainer');
 
+            // Pokud zobrazujeme stejné zařízení, updatuj jen data, ne HTML
+            if (lastRenderedDeviceId === device.id) {
+                updateDeviceData(device);
+                return;
+            }
+
+            lastRenderedDeviceId = device.id;
+
             // Online status
             const isOnline = device.online === 1 || device.online === '1' || device.online === true;
             const statusBadge = `<span class="status-badge ${isOnline ? 'status-online' : 'status-offline'}">${isOnline ? 'ONLINE' : 'OFFLINE'}</span>`;
@@ -876,18 +929,200 @@
             // Iteruj přes properties array
             if (device.properties && Array.isArray(device.properties)) {
                 device.properties.forEach(prop => {
-                    propertiesHtml += `
-                        <div class="property-item">
-                            <div class="property-label">${prop.key}</div>
-                            <div class="property-value">${prop.value}</div>
-                        </div>
-                    `;
-                });
-            }
 
+                    if (prop.key === "irImg") {
+                        const canvasId = `ir-canvas-${device.id}`;
+                        const scaleId = `scale-canvas-${device.id}`;
+                        const infoId = `temp-info-${device.id}`;
+
+                        propertiesHtml += `
+                            <div class="ir-display">
+                                <div class="ir-container">
+                                    <canvas id="${canvasId}" 
+                                            width="320" 
+                                            height="240"
+                                            style="image-rendering: pixelated; border:1px solid #444; cursor: crosshair;">
+                                    </canvas>
+                                    <div class="temp-info" id="${infoId}">
+                                        <div>Pozice: <span id="temp-pos-${device.id}"></span></div>
+                                        <div>Teplota: <span class="temp-value" id="temp-value-${device.id}"></span></div>
+                                    </div>
+                                </div>
+                                <div class="temperature-scale">
+                                    <canvas id="${scaleId}" width="40" height="240"></canvas>
+                                    <div class="scale-labels">
+                                        <div id="temp-max-${device.id}">--°C</div>
+                                        <div id="temp-mid-${device.id}">--°C</div>
+                                        <div id="temp-min-${device.id}">--°C</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        // Vykreslení až po vložení do DOM
+                        setTimeout(() => {
+                            let temperatures = prop.value;
+                            
+                            if (typeof temperatures === 'string') {
+                                try {
+                                    temperatures = JSON.parse(temperatures);
+                                } catch (e) {
+                                    console.error('Chyba při parsování IR dat:', e);
+                                    temperatures = [];
+                                }
+                            }
+                            
+                            if (Array.isArray(temperatures) && temperatures.length === 768) {
+                                renderIrImage(canvasId, scaleId, device.id, temperatures, 32, 24);
+                            } else {
+                                console.error('Neplatná IR data - očekáváno 768 hodnot, získáno:', temperatures ? temperatures.length : 0);
+                            }
+                        }, 50);
+
+                    } else {
+                        propertiesHtml += `
+                            <div class="property-item" data-key="${prop.key}">
+                                <div class="property-label">${prop.key}</div>
+                                <div class="property-value" id="prop-${device.id}-${prop.key}">${prop.value}</div>
+                            </div>
+                        `;
+                    }
+                });
+
+            }
             propertiesHtml += '</div></div>';
 
             container.innerHTML = propertiesHtml;
+        }
+
+        function updateDeviceData(device) {
+            // Aktualizuj status badge
+            const isOnline = device.online === 1 || device.online === '1' || device.online === true;
+            const statusBadge = document.querySelector('.status-badge');
+            if (statusBadge) {
+                statusBadge.className = `status-badge ${isOnline ? 'status-online' : 'status-offline'}`;
+                statusBadge.textContent = isOnline ? 'ONLINE' : 'OFFLINE';
+            }
+
+            // Aktualizuj properties
+            if (device.properties && Array.isArray(device.properties)) {
+                device.properties.forEach(prop => {
+                    if (prop.key === "irImg") {
+                        // Aktualizuj IR kameru
+                        updateIrCanvas(device.id, prop.value);
+                    } else {
+                        // Aktualizuj ostatní properties
+                        const valueElement = document.getElementById(`prop-${device.id}-${prop.key}`);
+                        if (valueElement && valueElement.textContent !== prop.value) {
+                            valueElement.textContent = prop.value;
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateIrCanvas(deviceId, irData) {
+            const canvasId = `ir-canvas-${deviceId}`;
+            const scaleId = `scale-canvas-${deviceId}`;
+            
+            let temperatures = irData;
+            
+            if (typeof temperatures === 'string') {
+                try {
+                    temperatures = JSON.parse(temperatures);
+                } catch (e) {
+                    return;
+                }
+            }
+            
+            if (Array.isArray(temperatures) && temperatures.length === 768) {
+                // Pouze překresli canvas, ne celý HTML
+                renderIrImageQuiet(canvasId, scaleId, deviceId, temperatures, 32, 24);
+            }
+        }
+
+        function renderIrImageQuiet(canvasId, scaleId, deviceId, temperatures, width, height) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const scaleCanvas = document.getElementById(scaleId);
+            const scaleCtx = scaleCanvas ? scaleCanvas.getContext('2d') : null;
+
+            if (!Array.isArray(temperatures) || temperatures.length !== width * height) {
+                return;
+            }
+
+            const minTemp = Math.min(...temperatures);
+            const maxTemp = Math.max(...temperatures);
+            const tempRange = maxTemp - minTemp || 1;
+
+            // Aktualizovat popisky škály
+            const maxLabel = document.getElementById(`temp-max-${deviceId}`);
+            const midLabel = document.getElementById(`temp-mid-${deviceId}`);
+            const minLabel = document.getElementById(`temp-min-${deviceId}`);
+            
+            if (maxLabel) maxLabel.textContent = `${maxTemp.toFixed(1)}°C`;
+            if (midLabel) midLabel.textContent = `${((maxTemp + minTemp) / 2).toFixed(1)}°C`;
+            if (minLabel) minLabel.textContent = `${minTemp.toFixed(1)}°C`;
+
+            function tempToColor(temp) {
+                const normalized = (temp - minTemp) / tempRange;
+                let r, g, b;
+                
+                if (normalized < 0.25) {
+                    const t = normalized / 0.25;
+                    r = Math.floor(t * 130);
+                    g = 0;
+                    b = Math.floor(130 + t * 125);
+                } else if (normalized < 0.5) {
+                    const t = (normalized - 0.25) / 0.25;
+                    r = Math.floor(130 + t * 125);
+                    g = 0;
+                    b = Math.floor(255 - t * 255);
+                } else if (normalized < 0.75) {
+                    const t = (normalized - 0.5) / 0.25;
+                    r = 255;
+                    g = Math.floor(t * 255);
+                    b = 0;
+                } else {
+                    const t = (normalized - 0.75) / 0.25;
+                    r = 255;
+                    g = 255;
+                    b = Math.floor(t * 255);
+                }
+                
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+
+            const pixelWidth = canvas.width / width;
+            const pixelHeight = canvas.height / height;
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const index = y * width + x;
+                    const temp = temperatures[index];
+                    
+                    ctx.fillStyle = tempToColor(temp);
+                    ctx.fillRect(
+                        x * pixelWidth,
+                        y * pixelHeight,
+                        pixelWidth,
+                        pixelHeight
+                    );
+                }
+            }
+
+            if (scaleCtx) {
+                const scaleHeight = scaleCanvas.height;
+                for (let i = 0; i < scaleHeight; i++) {
+                    const temp = maxTemp - (i / scaleHeight) * tempRange;
+                    scaleCtx.fillStyle = tempToColor(temp);
+                    scaleCtx.fillRect(0, i, scaleCanvas.width, 1);
+                }
+            }
+
+            setupMouseHover(canvas, temperatures, width, height, pixelWidth, pixelHeight);
         }
         
         function showDeviceCommands(device) {
@@ -1279,6 +1514,134 @@
                 console.error("Error during initialization:", error);
             }
         }
+
+        function renderIrImage(canvasId, temperatures, width, height) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error(`Canvas ${canvasId} nenalezen`);
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+            const scaleCanvas = document.getElementById('scale-canvas');
+            const scaleCtx = scaleCanvas ? scaleCanvas.getContext('2d') : null;
+
+
+            // Najít min a max teplotu
+            const minTemp = Math.min(...temperatures);
+            const maxTemp = Math.max(...temperatures);
+            const tempRange = maxTemp - minTemp || 1; // ochrana proti dělení nulou
+
+            // Aktualizovat popisky škály
+            if (document.getElementById('temp-max')) {
+                document.getElementById('temp-max').textContent = `${maxTemp.toFixed(1)}°C`;
+                document.getElementById('temp-mid').textContent = `${((maxTemp + minTemp) / 2).toFixed(1)}°C`;
+                document.getElementById('temp-min').textContent = `${minTemp.toFixed(1)}°C`;
+            }
+
+            // Funkce pro převod teploty na barvu (Iron bow paleta)
+            function tempToColor(temp) {
+                const normalized = (temp - minTemp) / tempRange;
+                
+                let r, g, b;
+                
+                if (normalized < 0.25) {
+                    // Tmavě modrá -> fialová
+                    const t = normalized / 0.25;
+                    r = Math.floor(t * 130);
+                    g = 0;
+                    b = Math.floor(130 + t * 125);
+                } else if (normalized < 0.5) {
+                    // Fialová -> červená
+                    const t = (normalized - 0.25) / 0.25;
+                    r = Math.floor(130 + t * 125);
+                    g = 0;
+                    b = Math.floor(255 - t * 255);
+                } else if (normalized < 0.75) {
+                    // Červená -> oranžová -> žlutá
+                    const t = (normalized - 0.5) / 0.25;
+                    r = 255;
+                    g = Math.floor(t * 255);
+                    b = 0;
+                } else {
+                    // Žlutá -> bílá
+                    const t = (normalized - 0.75) / 0.25;
+                    r = 255;
+                    g = 255;
+                    b = Math.floor(t * 255);
+                }
+                
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+
+            // Vykreslení IR obrazu
+            const pixelWidth = canvas.width / width;
+            const pixelHeight = canvas.height / height;
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const index = y * width + x;
+                    const temp = temperatures[index];
+                    
+                    ctx.fillStyle = tempToColor(temp);
+                    ctx.fillRect(
+                        x * pixelWidth,
+                        y * pixelHeight,
+                        pixelWidth,
+                        pixelHeight
+                    );
+                }
+            }
+
+            // Vykreslení barevné škály
+            if (scaleCtx) {
+                const scaleHeight = scaleCanvas.height;
+                for (let i = 0; i < scaleHeight; i++) {
+                    const temp = maxTemp - (i / scaleHeight) * tempRange;
+                    scaleCtx.fillStyle = tempToColor(temp);
+                    scaleCtx.fillRect(0, i, scaleCanvas.width, 1);
+                }
+            }
+
+            // Přidání mouse hover funkcionality
+            setupMouseHover(canvas, temperatures, width, height, pixelWidth, pixelHeight);
+        }
+
+        /**
+         * Nastavení zobrazení teploty při najetí myší
+         */
+        function setupMouseHover(canvas, temperatures, width, height, pixelWidth, pixelHeight) {
+            const tempInfo = document.getElementById('temp-info');
+            const tempPos = document.getElementById('temp-pos');
+            const tempValue = document.getElementById('temp-value');
+
+            if (!tempInfo) return;
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = Math.floor((e.clientX - rect.left) / pixelWidth);
+                const y = Math.floor((e.clientY - rect.top) / pixelHeight);
+
+                if (x >= 0 && x < width && y >= 0 && y < height) {
+                    const index = y * width + x;
+                    const temp = temperatures[index];
+
+                    tempPos.textContent = `(${x}, ${y})`;
+                    tempValue.textContent = `${temp.toFixed(1)}°C`;
+
+                    // Umístění info boxu
+                    tempInfo.style.display = 'block';
+                    tempInfo.style.left = `${e.clientX - rect.left + 15}px`;
+                    tempInfo.style.top = `${e.clientY - rect.top - 40}px`;
+                }
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                tempInfo.style.display = 'none';
+            });
+        }
+
+
         
         // Spusti inicializaci
         initializeApp();

@@ -1,5 +1,8 @@
 # Changelog
 
+## \[0.5] - 2026-03-28
+* HomeAssistant new MQTT protocol
+
 ## \[0.4] - 2025-12-06
 
 ### Added
@@ -7,6 +10,7 @@
 * WEB GUI on port 8899
 * FW Updates included in SW
 * HomeAssistant initial integration
+
 
 
 ## \[0.3.1] - 2024-11-24
@@ -27,3 +31,4 @@
 * Basic MQTT communication support.
 * Integration with JavaFX for UI.
 * Dependency management using Maven.
+

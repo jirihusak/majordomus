@@ -1,6 +1,26 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * MajordomusControl - Home Automation Gateway
+ * REST API and web UI server built on the Javalin framework (port 8899).
+ * Exposes endpoints for reading device state, sending commands,
+ * managing configuration, and triggering firmware updates over RS-485.
+ *
+ * Copyright (C) 2024  Ing. Jiří Husák
+ * Author:  Ing. Jiří Husák
+ * Contact: info@majordomus.tech
+ * Website: www.majordomus.tech
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 package Web;
 
@@ -256,10 +276,7 @@ public class WebInterface {
                 // Save to XML file
                 Configuration.getInstance().saveToFile();
 
-                ctx.status(200);
-                ctx.json(Map.of("success", true, "message", "Configuration saved successfully"));
-
-                // reload
+                // Reload all subsystems before sending response
                 Devices.DeviceInterface.getInstance().reloadConfiguration();
                 SerialCom.SerialCommunication.getInstance().reloadConfiguration();
                 try {
@@ -267,6 +284,9 @@ public class WebInterface {
                 } catch (Exception e) {
                     System.err.println("MQTT reload error: " + e.getMessage());
                 }
+
+                ctx.status(200);
+                ctx.json(Map.of("success", true, "message", "Configuration saved successfully"));
 
             } catch (Exception e) {
                 e.printStackTrace();
