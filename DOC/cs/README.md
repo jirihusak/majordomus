@@ -1,1 +1,0 @@
-# Dokumentace systému Majordomus

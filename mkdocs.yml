@@ -1,0 +1,31 @@
+site_name: Majordomus
+site_url: https://jirihusak.github.io/majordomus-docs/
+site_description: Open-source smart home system
+
+theme:
+  name: material
+  language: cs
+  palette:
+    - scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Tmavý režim
+    - scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Světlý režim
+  features:
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+
+nav:
+  - Úvod: cs/index.md
+
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
