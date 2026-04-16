@@ -1,0 +1,692 @@
+
+<!doctype html>
+<html lang="cs" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Open-source smart home system">
+      
+      
+      
+        <link rel="canonical" href="https://jirihusak.github.io/majordomus/cs/">
+      
+      
+      
+      
+        
+          <link rel="alternate" href="/majordomus/cs/" hreflang="cs">
+        
+          <link rel="alternate" href="/majordomus/en/" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Úvod - Majordomus</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#majordomus" class="md-skip">
+          Přeskočit obsah
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Záhlaví">
+    <a href=".." title="Majordomus" class="md-header__button md-logo" aria-label="Majordomus" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Majordomus
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Úvod
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Tmavý režim"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Tmavý režim" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Světlý režim"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Světlý režim" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Zvolte jazyk">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="/majordomus/cs/" hreflang="cs" class="md-select__link">
+              Česky
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="/majordomus/en/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Hledat" placeholder="Hledat" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Vyhledávání">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Vyčistit" aria-label="Vyčistit" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializace vyhledávání
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigace" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Majordomus" class="md-nav__button md-logo" aria-label="Majordomus" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Majordomus
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Úvod
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Úvod
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Obsah">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Obsah
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#chytry-dum-ktery-dava-smysl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chytrý dům, který dává smysl
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jak-to-cele-zacalo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jak to celé začalo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pro-koho-je-majordomus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro koho je Majordomus
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zakladni-filozofie" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Základní filozofie
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Základní filozofie">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hloupe-zarizeni-chytry-mozek" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hloupé zařízení + chytrý mozek
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jeden-modul-na-mistnost" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jeden modul na místnost
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drat-ktery-vydrzi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Drát, který vydrží
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#otevrenost-bez-kompromisu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Otevřenost bez kompromisů
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jak-to-funguje-v-kostce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jak to funguje — v kostce
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Obsah">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Obsah
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#chytry-dum-ktery-dava-smysl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chytrý dům, který dává smysl
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jak-to-cele-zacalo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jak to celé začalo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pro-koho-je-majordomus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro koho je Majordomus
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zakladni-filozofie" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Základní filozofie
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Základní filozofie">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hloupe-zarizeni-chytry-mozek" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hloupé zařízení + chytrý mozek
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jeden-modul-na-mistnost" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jeden modul na místnost
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drat-ktery-vydrzi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Drát, který vydrží
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#otevrenost-bez-kompromisu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Otevřenost bez kompromisů
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jak-to-funguje-v-kostce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jak to funguje — v kostce
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="majordomus">Majordomus</h1>
+<h2 id="chytry-dum-ktery-dava-smysl">Chytrý dům, který dává smysl</h2>
+<p>Majordomus je open-source systém pro řízení chytré domácnosti. Postavený na spolehlivé drátové sběrnici RS485, modulárních jednotkách a otevřeném softwaru. Navržený tak, aby vydržel desítky let — stejně jako váš dům.</p>
+<hr />
+<h2 id="jak-to-cele-zacalo">Jak to celé začalo</h2>
+<p>V roce 2018 jsem začal s rekonstrukcí rodinného domu a řešil otázku, kterou řeší každý, kdo rekonstruuje: <strong>jak na chytrý dům?</strong></p>
+<p>Mám vystudovaný obor vestavěných systémů na VUT FIT. Mít chytrý dům je sen každého nadšence do IT a elektroniky. Jenže jaký systém vybrat?</p>
+<p><strong>Komerční systémy</strong> jako KNX nebo Loxone mají vyšší pořizovací cenu, ale hlavním problémem je uzavřenost. Proprietární ekosystém, závislost na jednom výrobci a k tomu několik krabiček do každé místnosti, pokud chcete pokrýt všechno. A typicky obří rozvaděč v technické místnosti. Uživatel pokud chce něco trošku jinak, než je standard, tak může narazit na limity.</p>
+<p><strong>Bastlířské projekty</strong> na Arduinu a ESP32 řešily vždy jen jeden konkrétní problém — třeba senzor CO2 nebo chytré relé. Pokud bych chtěl v místnosti měřit teplotu, vlhkost, CO2, osvětlení, přítomnost, ovládat světla a žaluzie, skončil bych s hromadou malých krabiček, spletencem kabelů a nulovou zárukou, že to za rok bude ještě fungovat.</p>
+<p><strong>Řekl jsem si: musí to jít jinak.</strong></p>
+<p>Programování firmware a software pro mě nebyl problém. Začal jsem se ale ponořit do návrhu elektroniky — protože jsem chtěl jediné kompaktní zařízení do každé místnosti, které pokryje všechno. A spolehlivou drátovou infrastrukturu, která vydrží do další rekonstrukce.</p>
+<p>Po několika měsících vývoje a iterací prototypů vznikl funkční ekosystém. A rozhodl jsem se ho nabídnout dalším.</p>
+<hr />
+<h2 id="pro-koho-je-majordomus">Pro koho je Majordomus</h2>
+<p>Majordomus je pro vás, pokud:</p>
+<ul>
+<li><strong>Rekonstruujete nebo stavíte dům</strong> a chcete chytrou domácnost, která vydrží desítky let.</li>
+<li><strong>Nechcete být závislí na jednom výrobci</strong> — chcete otevřený systém, který si můžete upravit.</li>
+<li><strong>Chcete spolehlivost drátového řešení</strong>, ne závislost na Wi-Fi a baterky v senzorech.</li>
+<li><strong>Hledáte rozumný poměr cena/výkon</strong> bez kompromisů na kvalitě komponent.</li>
+<li><strong>Jste elektrikář nebo instalatér</strong>, který chce nabídnout klientům moderní řešení bez vendor lock-in.</li>
+</ul>
+<hr />
+<h2 id="zakladni-filozofie">Základní filozofie</h2>
+<h3 id="hloupe-zarizeni-chytry-mozek">Hloupé zařízení + chytrý mozek</h3>
+<p>Majordomus staví na jednoduchém principu: <strong>použijte klasická, osvědčená zařízení a přidejte k nim chytré řízení.</strong></p>
+<p>Příklad? Obyčejná žárovka za pár korun. Spíná ji chytrý modul Majordomu. Když žárovka praskne, vyměníte žárovku — ne celé chytré svítidlo za tisíce, které za tři roky možná ani nekoupíte. Stejný princip platí pro ventily topení, ovládání žaluzií, čerpadla a další zařízení.</p>
+<h3 id="jeden-modul-na-mistnost">Jeden modul na místnost</h3>
+<p>Žádná hromada krabiček po zdech. Jedna kompaktní jednotka RoomSensor v instalační krabici pokryje vše — teplotu, vlhkost, CO2, VOC, intenzita osvětlení, hluk, akustické upozornění, přítomnost osob, ovládání stmívání světel i ovládací tlačítka.</p>
+<h3 id="drat-ktery-vydrzi">Drát, který vydrží</h3>
+<p>Čtyři vodiče sběrnice RS485 (12V, GND, A, B) vedou po domě a spojují všechny jednotky v patře. Žádné Wi-Fi, žádné baterie, žádné výpadky. Infrastruktura, která bude fungovat tak dlouho jako elektroinstalace. </p>
+<h3 id="otevrenost-bez-kompromisu">Otevřenost bez kompromisů</h3>
+<p>Celý projekt je open-source — hardware i software. Komunikace přes standardní MQTT protokol. Integrace s Node-RED a Home Assistant. Žádný vendor lock-in, žádné cloudové závislosti.</p>
+<hr />
+<h2 id="jak-to-funguje-v-kostce">Jak to funguje — v kostce</h2>
+<div class="highlight"><pre><span></span><code>┌─────────────┐     USB      ┌──────────────┐    RS485 sběrnice
+│  Mini PC    │◄────────────►│  RS485       │◄──── 4 dráty ────►  několik RoomSensor (místnost)
+│  (Rpi...)   │              │  převodník   │◄──── 4 dráty ────►  RoomIO (rozvaděč výstupů)
+│             │              └──────────────┘
+│  ┌────────┐ │
+│  │Majord. │ │     MQTT
+│  │Control │ │◄──────────►  Node-RED (logika: topení, světla, žaluzie)
+│  └────────┘ │◄──────────►  Home Assistant (UI, integrace, uživatelské scény)
+└─────────────┘
+</code></pre></div>
+<p><strong>Majordomus Control</strong> — brána, která překládá RS485 komunikaci na MQTT zprávy.
+<strong>Node-RED</strong> — zpracovává kritickou logiku domu (topení, osvětlení, žaluzie).
+<strong>Home Assistant</strong> — uživatelské rozhraní, mobilní aplikace, integrace s dalšími zařízeními (TV, FVE, auto...).</p>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "search.suggest"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Zkop\u00edrov\u00e1no do schr\u00e1nky", "clipboard.copy": "Kop\u00edrovat do schr\u00e1nky", "search.result.more.one": "1 dal\u0161\u00ed na t\u00e9to str\u00e1nce", "search.result.more.other": "# v\u00edce na t\u00e9to str\u00e1nce", "search.result.none": "Nenalezeny \u017e\u00e1dn\u00e9 dokumenty", "search.result.one": "Nalezen\u00fd dokument: 1", "search.result.other": "Nalezen\u00e9 dokumenty: #", "search.result.placeholder": "Pi\u0161te co se m\u00e1 vyhledat", "search.result.term.missing": "Chyb\u011bj\u00edc\u00ed", "select.version": "Vyberte verzi"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
