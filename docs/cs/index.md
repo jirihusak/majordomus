@@ -8,11 +8,11 @@ Majordomus je open-source systém pro řízení chytré domácnosti. Postavený 
 
 ## Jak to celé začalo
 
-V roce 2018 jsem stál uprostřed rozbouraného domu starého 40 let a řešil otázku, kterou řeší každý, kdo rekonstruuje: **jak na chytrý dům?**
+V roce 2018 jsem začal s rekonstrukcí rodinného domu a řešil otázku, kterou řeší každý, kdo rekonstruuje: **jak na chytrý dům?**
 
-Mám vystudovaný obor vestavěných systémů na VUT FIT. Mít chytrý dům je sen každého nadšence do IT a elektroniky. Jenže realita trhu mě rychle střízlivěla.
+Mám vystudovaný obor vestavěných systémů na VUT FIT. Mít chytrý dům je sen každého nadšence do IT a elektroniky. Jenže jaký systém vybrat?
 
-**Komerční systémy** jako KNX nebo Loxone měly svou cenu — a tu by se možná dalo zkousnout. Co se zkousnout nedalo, byla uzavřenost. Proprietární ekosystém, závislost na jednom výrobci a k tomu několik krabiček do každé místnosti, pokud chcete pokrýt všechno. A co za pět, deset let? Dostanete náhradní díly? Bude ten výrobce vůbec existovat?
+**Komerční systémy** jako KNX nebo Loxone mají vyšší pořizovací cenu, ale hlavním problémem je uzavřenost. Proprietární ekosystém, závislost na jednom výrobci a k tomu několik krabiček do každé místnosti, pokud chcete pokrýt všechno. A typicky obří rozvaděč v technické místnosti. Uživatel pokud chce něco trošku jinak, než je standard, tak může narazit na limity.
 
 **Bastlířské projekty** na Arduinu a ESP32 řešily vždy jen jeden konkrétní problém — třeba senzor CO2 nebo chytré relé. Pokud bych chtěl v místnosti měřit teplotu, vlhkost, CO2, osvětlení, přítomnost, ovládat světla a žaluzie, skončil bych s hromadou malých krabiček, spletencem kabelů a nulovou zárukou, že to za rok bude ještě fungovat.
 
@@ -42,15 +42,15 @@ Majordomus je pro vás, pokud:
 
 Majordomus staví na jednoduchém principu: **použijte klasická, osvědčená zařízení a přidejte k nim chytré řízení.**
 
-Příklad? Obyčejná žárovka za pár korun. Spíná ji chytrý modul Majordomu. Když žárovka praskne, vyměníte žárovku — ne celé chytré svítidlo za tisíce, které za tři roky možná ani nekoupíte. Stejný princip platí pro ventily topení, motory žaluzií, čerpadla a další zařízení.
+Příklad? Obyčejná žárovka za pár korun. Spíná ji chytrý modul Majordomu. Když žárovka praskne, vyměníte žárovku — ne celé chytré svítidlo za tisíce, které za tři roky možná ani nekoupíte. Stejný princip platí pro ventily topení, ovládání žaluzií, čerpadla a další zařízení.
 
 ### Jeden modul na místnost
 
-Žádná hromada krabiček po zdech. Jedna kompaktní jednotka RoomSensor v instalační krabici pokryje vše — teplotu, vlhkost, CO2, kvalitu vzduchu, osvětlení, hluk, přítomnost osob i ovládací tlačítka.
+Žádná hromada krabiček po zdech. Jedna kompaktní jednotka RoomSensor v instalační krabici pokryje vše — teplotu, vlhkost, CO2, VOC, intenzita osvětlení, hluk, akustické upozornění, přítomnost osob, ovládání stmívání světel i ovládací tlačítka.
 
 ### Drát, který vydrží
 
-Čtyři vodiče sběrnice RS485 (12V, GND, A, B) vedou po domě a spojují všechny jednotky. Žádné Wi-Fi, žádné baterie, žádné výpadky. Infrastruktura, která bude fungovat tak dlouho jako elektroinstalace.
+Čtyři vodiče sběrnice RS485 (12V, GND, A, B) vedou po domě a spojují všechny jednotky v patře. Žádné Wi-Fi, žádné baterie, žádné výpadky. Infrastruktura, která bude fungovat tak dlouho jako elektroinstalace. 
 
 ### Otevřenost bez kompromisů
 
@@ -62,9 +62,9 @@ Celý projekt je open-source — hardware i software. Komunikace přes standardn
 
 ```
 ┌─────────────┐     USB      ┌──────────────┐    RS485 sběrnice
-│  Mini PC    │◄────────────►│  RS485       │◄──── 4 dráty ────►  RoomSensor (místnost)
-│  (Rpi...)   │              │  převodník   │◄──── 4 dráty ────►  RoomIO (místnost)
-│             │              └──────────────┘◄──── 4 dráty ────►  BoxIO (rozvaděč)
+│  Mini PC    │◄────────────►│  RS485       │◄──── 4 dráty ────►  několik RoomSensor (místnost)
+│  (Rpi...)   │              │  převodník   │◄──── 4 dráty ────►  RoomIO (rozvaděč výstupů)
+│             │              └──────────────┘
 │  ┌────────┐ │
 │  │Majord. │ │     MQTT
 │  │Control │ │◄──────────►  Node-RED (logika: topení, světla, žaluzie)
@@ -78,8 +78,3 @@ Celý projekt je open-source — hardware i software. Komunikace přes standardn
 
 ---
 
-## Další kroky
-
-- [Proč Majordomus a ne jiný systém?](why-majordomus.md) — Srovnání s KNX, Loxone a bastlířskými řešeními.
-- [Architektura systému](architecture/overview.md) — Jak to celé drží pohromadě.
-- [Začínáme](getting-started/what-to-buy.md) — Co nakoupit a jak zapojit první jednotku.
