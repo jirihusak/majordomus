@@ -29,3 +29,14 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+
+extra:
+  alternate:
+    - name: Česky
+      link: /majordomus/cs/
+      lang: cs
+    - name: English
+      link: /majordomus/en/
+      lang: en
+
+extra_css: []
