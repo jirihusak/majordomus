@@ -1,38 +1,110 @@
-# Majordomus - Open source system for Smart Home
-Majordomus is open hardware and open source system not only for smart home. Majordomus HW devices communicating via RS-485 interface with a gateway (for example RPi). This gateway makes an MQTT interface for commonly used SW applications for Smart Home (for example node-red).
-See diagram below. Majordomus can do the blue parts from the diagram. Enjoy Majordomus in your project!
+<img width="212" height="67" alt="logo" src="https://github.com/user-attachments/assets/f73272f2-1461-44af-90d7-b82d8c60e8bf" />
 
-![Nepojmenované](https://github.com/jirihusak/majordomus/assets/33901383/3a26aa7d-3c42-4a49-821c-4de11687ebca)
-
-## List of Majordomus HW devices
-- Majordomus RS4852USB - USB to 4 channel isolated RS-485 interface.
-
-![obrazek](https://github.com/user-attachments/assets/1d46ba04-b7e9-4ab4-813b-fe0bf64ae502)
-
-- Majordomus RoomIO - Compact device with MCU and RS-485 interface intended for junction box. Device has 8x 12V isolated inputs, 8x 12V digital outputs, 2x ADC 0 - 30V, 2x DAC 0-10V, 2x One-Wire interface for DS18B20 temperature sensor, 1x I2C.
-
-![obrazek](https://github.com/user-attachments/assets/5a028f5a-e13e-42af-8ec7-fc6ec4342270)
-
-- Majordomus RoomSensor - Compact device with MCU and RS-485 interface intended for junction box. Device has 4x 12V isolated inputs, 4x 12V digital outputs, 2x ADC 0 - 30V, 2x DAC 0-10V, 2x One-Wire interface for DS18B20 temperature sensor, 1x I2C, Temperature Sensor, Humidity Sensor, PIR motion detector, VOC sensor, Lux meter, LED light, 128x32 Display, 3X Capative touch button, MEMS Microphone noise level meter, Buzzer,
-
-![obrazek](https://github.com/user-attachments/assets/d86854e0-54ac-4b06-8060-f4d75f83a3b8)
-
-## Majordomus SW
-
-### Majordomus Control
-This application makes the bridge between RS-485 bus and MQTT. The application has also GUI for real time controling the state of all devices. You can update devices to newer firmware.
-
-![obrazek](https://github.com/user-attachments/assets/ec6d1a99-08e1-468d-918d-efa711c0d951)
-
-
-### Node-Red nodes
-
-- Scheduler
-  Node for week based scheduling. You can set the rules with priorities and the node will send value from current rule.
+# Majordmus - Open source system for Smart Home
+ 
+## About
+ 
+**Majordomus** is a modular automation system built on open standards. It fills the gap between closed, expensive commercial solutions and unreliable consumer-grade components — designed to be repairable, expandable, and to last for decades.
   
-![obrazek](https://github.com/user-attachments/assets/eec50598-5b8e-41da-854a-8ed3e9546968)
+## Features
+ 
+- 🧩 **Modular hardware** — base unit + interchangeable modules ( I/O, sensors)
+- 🔌 **Standardized interface** — RS-485 / ModBus HW interface, MQTT SW interface
+- 🔓 **Vendor lock-in free** — open hardware, open software, your choice
+- 🧠 **Node-RED inside** — visual programming for automation flows
+- 🧠 **Home Assistant interface** — MQTT integration for popular platform
+- 📡 **Offline-first** — works without internet, cloud is optional
+## Use Cases
+ 
+| Domain | Examples |
+|---|---|
+| 🏠 Smart home | lighting, heating, blinds, security, energy management |
+| 🏭 Industry | machine control, data acquisition, monitoring, alarms |
+| 📊 Monitoring | weather, air quality, energy meters, IoT sensors |
+ 
+## Architecture
+ 
+```
+   ┌─────────────────────┐
+   │      node-RED       │
+   │   Home Assistant    │
+   └──────────┬──────────┘
+              │
+             MQTT
+              │
+   ┌──────────┴──────────┐
+   │ Majordomus Control  │
+   │    MQTT bridge      │
+   └──────────┬──────────┘
+              │
+       Modbus / RS-485
+              │
+    ┌─────────┼─────────┐
+    │         │         │
+   Unit A   Unit B   Unit C
+  (+ modules) (+ modules) (+ modules)
+```
+ 
+## Hardware
+ 
+### 🌡️ RoomSensor
+ 
+All-in-one ambient monitoring unit for indoor environments.
+ 
+- 🌡️ Temperature & humidity
+- 💨 CO₂, VOC & NOx measurement
+- 🚶 PIR motion detection
+- ☀️ Ambient light (lux)
+- 🔊 Ambient noise measurement
+- 🖥️ Display with 3 buttons
+- 🔔 Piezo buzzer for acoustic signaling
+- 🔌 Digital I/O for door/window contacts or local buttons
+- 🔗 I²C port for external sensors
+- 🏠 Wall-mount
+<img width="500" alt="RoomSensor" src="https://github.com/user-attachments/assets/49e0f29c-1cdb-4bf7-9514-6cc1d3e47112" />
+
+### 🔲 BoxIO
+ 
+Compact relay & input unit for in-wall or junction-box installation.
+ 
+- ⚡ Replaceable relay outputs (electromagnetic or SSR)
+- 🔘 Digital inputs for buttons
+- 📊 Hardware input counters for energy monitoring
+- 🎛️ Manual control of all outputs (AUTO / MAN ON / MAN OFF)
+- 🔗 I²C port for external sensors
+<img width="500" alt="BoxIO" src="https://github.com/user-attachments/assets/694fda46-37d7-421d-a3fd-76a13c89442a" />
+
+### 🎛️ RoomIO
+ 
+Multi-purpose I/O unit for room-level automation and control.
+ 
+- 🔘 Digital inputs & outputs
+- 📥 Analog inputs (ADC) — 0–10 V
+- 📤 Analog outputs (DAC) — 0–10 V for dimming, fan speed, valves
+- 📊 Hardware input counters for energy monitoring
+- 🔗 I²C port for external sensors
+<img width="500" alt="RoomIO" src="https://github.com/user-attachments/assets/8357177d-f048-438e-9133-dc0bc429cbbd" />
 
 
+Schematics and BOMs live in [`hardware/`](hardware/).
+ 
+## Software
+ 
+### **Majordomus Control**
+Bridge from HW modules to MQTT interface
 
-## Website
-www.majordomus.tech
+<img width="800" alt="obrazek" src="https://github.com/user-attachments/assets/449e9a69-67f3-4fe1-a53f-36ccc8fc3cb1" />
+
+### **Node-RED - Custom Node-RED nodes**
+
+## Documentation
+ 
+- 
+
+## Contributing
+ 
+Contributions welcome — hardware, firmware, Node-RED flows, or docs.
+
+## Contact
+ 
+- **Web:** [majordomus.tech](https://majordomus.tech)
