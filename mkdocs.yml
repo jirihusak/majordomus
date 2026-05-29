@@ -1,34 +1,58 @@
-site_name: Majordomus
+site_name: Dokumentace a návody
 site_url: https://jirihusak.github.io/majordomus/
 site_description: Open-source smart home system
 
 theme:
   name: material
+  logo: assets/logoWhite.png
+  favicon: assets/favicon.png
   language: cs
   palette:
     - scheme: default
-      primary: indigo
+      primary: blue
       toggle:
         icon: material/brightness-7
         name: Tmavý režim
     - scheme: slate
-      primary: indigo
+      primary: blue
       toggle:
         icon: material/brightness-4
         name: Světlý režim
   features:
-    - navigation.sections
-    - navigation.expand
+    #- navigation.sections
+    #- navigation.expand
     - search.suggest
+    #- navigation.indexes
+    - navigation.top
+    - toc.integrate
+    - search.highlight
+    - content.code.copy
 
 nav:
-  - Úvod: cs/index.md
+  - Začínáme: 
+    - Úvod: cs/index.md
+    - Proč Majordomus: cs/why-majordomus.md
+    - Cenové srovnání: cs/price-comparison.md
+  - Hardware:
+    - Co potřebuji pro start: cs/how-start.md
+    - Topologie: cs/topology.md
+  - Majordomus Control:
+    - Architektura SW: cs/sw-architecture.md
+    - Instalace SW: cs/sw-installation.md
+    - Konfigurace SW: cs/sw-configuration.md
+  - Node-RED:
+    - Co je Node-RED: cs/sw-node-red.md
+    
 
 markdown_extensions:
   - tables
   - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
 
 extra:
   alternate:
@@ -39,4 +63,6 @@ extra:
       link: /majordomus/en/
       lang: en
 
-extra_css: []
+extra_css:
+  - stylesheets/extra.css
+

@@ -1,6 +1,4 @@
-# Majordomus
-
-## Chytrý dům, který dává smysl
+# Majordomus - chytrý dům, který dává smysl
 
 Majordomus je open-source systém pro řízení chytré domácnosti. Postavený na spolehlivé drátové sběrnici RS485, modulárních jednotkách a otevřeném softwaru. Navržený tak, aby vydržel desítky let — stejně jako váš dům.
 
@@ -42,7 +40,7 @@ Majordomus je pro vás, pokud:
 
 Majordomus staví na jednoduchém principu: **použijte klasická, osvědčená zařízení a přidejte k nim chytré řízení.**
 
-Příklad? Obyčejná žárovka za pár korun. Spíná ji chytrý modul Majordomu. Když žárovka praskne, vyměníte žárovku — ne celé chytré svítidlo za tisíce, které za tři roky možná ani nekoupíte. Stejný princip platí pro ventily topení, ovládání žaluzií, čerpadla a další zařízení.
+Příklad? Obyčejná žárovka za pár korun. Spíná ji chytrý modul Majordomus. Když žárovka praskne, vyměníte žárovku — ne celé chytré svítidlo za tisíce, které za tři roky možná ani nekoupíte. Stejný princip platí pro ventily topení, ovládání žaluzií, čerpadla a další zařízení.
 
 ### Jeden modul na místnost
 
@@ -60,19 +58,17 @@ Celý projekt je open-source — hardware i software. Komunikace přes standardn
 
 ## Jak to funguje — v kostce
 
-```
-┌─────────────┐     USB      ┌──────────────┐    RS485 sběrnice
-│  Mini PC    │◄────────────►│  RS485       │◄──── 4 dráty ────►  několik RoomSensor (místnost)
-│  (Rpi...)   │              │  převodník   │◄──── 4 dráty ────►  RoomIO (rozvaděč výstupů)
-│             │              └──────────────┘
-│  ┌────────┐ │
-│  │Majord. │ │     MQTT
-│  │Control │ │◄──────────►  Node-RED (logika: topení, světla, žaluzie)
-│  └────────┘ │◄──────────►  Home Assistant (UI, integrace, uživatelské scény)
-└─────────────┘
+```mermaid
+graph LR
+    PC[Mini PC / RapsberryPi ] <-->|USB| RS[RS-485 převodník]
+    RS <-->|RS-485| ROOM1[RoomSensor 1]
+    ROOM1[RoomSensor 1] <-->|RS-485| ROOM2[RoomSensor 2]
+    ROOM2[RoomSensor 2] <-->|RS-485| ROOM3[RoomSensor 3]
+    PC -->|MQTT| NR[Node-RED]
+    PC -->|MQTT| HA[Home Assistant]
 ```
 
-**Majordomus Control** — brána, která překládá RS485 komunikaci na MQTT zprávy.
+**Mini PC / RapsberryPi** — srdce systému obsahuje SW MajordomusControl pro komuniaci s HW jednotkami
 **Node-RED** — zpracovává kritickou logiku domu (topení, osvětlení, žaluzie).
 **Home Assistant** — uživatelské rozhraní, mobilní aplikace, integrace s dalšími zařízeními (TV, FVE, auto...).
 
