@@ -98,8 +98,8 @@ Bridge from HW modules to MQTT interface
 ### **Node-RED - Custom Node-RED nodes**
 
 ## Documentation
- 
-- 
+
+- **Doc:** [majordomus.tech](https://jirihusak.github.io/majordomus/cs/) 
 
 ## Contributing
  
