@@ -99,7 +99,7 @@ Bridge from HW modules to MQTT interface
 
 ## Documentation
 
-- **Doc:** [majordomus.tech](https://jirihusak.github.io/majordomus/cs/) 
+- [Documentation web](https://jirihusak.github.io/majordomus/cs/) 
 
 ## Contributing
  
