@@ -94,7 +94,7 @@ public class TempOutBoard extends DeviceGeneric {
 
         String msg = "id:" + name;
 
-        if (Duration.between(lastStatusReq, now1).toSeconds() > 10) {
+        if (Duration.between(lastStatusReq, now1).toSeconds() > 30) {
             msg += ",msg:status";
             lastStatusReq = now1;
         } else {

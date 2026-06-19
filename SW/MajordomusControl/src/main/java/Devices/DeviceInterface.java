@@ -91,6 +91,9 @@ public class DeviceInterface {
                 case "RoomIR" -> {
                     deviceMap.put(d.name, new RoomIR(d.connection, d.name, d.type));
                 }
+                case "BoxIO" -> {
+                    deviceMap.put(d.name, new BoxIO(d.connection, d.name, d.type));
+                }
                 default ->
                     System.out.println("Unknown device type");
             }
@@ -141,37 +144,54 @@ public class DeviceInterface {
     }
 
     public boolean parseIncomingSerialData(String data) {
-        HashMap<String, Object> msgData = new LinkedHashMap<>();
-
-        String[] keyValuePairs = data.split(",");
-        for (String pair : keyValuePairs) {
-            // split value :
-            String[] entry = pair.split(":");
-
-            String key = entry[0];
-            Object value = entry.length > 1 ? entry[1] : 0; // Pokud není hodnota k dispozici, nastavte na null
-
-            // Uložte hodnotu do mapy, můžete také provést konverzi hodnoty podle potřeby
-            msgData.put(key, value);
-
+        // Validate CRC before processing.
+        // Firmware format: "id:X,key:val,...,crc:XX\r\n"
+        // CRC is calculated over everything before the last ",crc:" token.
+        String trimmed = data.trim();
+        int crcIdx = trimmed.lastIndexOf(",crc:");
+        if (crcIdx < 0) {
+            return false; // no CRC field – discard
         }
 
-        // TODO check crc
-        //System.out.println(msgData);
-        String deviceName = (String) msgData.get("id");   
+        String payload = trimmed.substring(0, crcIdx);
+        String crcHex = trimmed.substring(crcIdx + 5).replaceAll("[^0-9a-fA-F]", "");
+        if (crcHex.isEmpty()) {
+            return false;
+        }
+
+        try {
+            int receivedCrc = Integer.parseInt(crcHex, 16) & 0xFF;
+            int calcCrc = SerialCom.SerialCommunication.getInstance().crc8(0, payload.toCharArray(), payload.length()) & 0xFF;
+            if (receivedCrc != calcCrc) {
+                System.err.println("CRC mismatch – discarding: " + payload);
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        HashMap<String, Object> msgData = new LinkedHashMap<>();
+
+        for (String pair : payload.split(",")) {
+            String[] entry = pair.split(":");
+            String key = entry[0];
+            Object value = entry.length > 1 ? entry[1] : 0;
+            msgData.put(key, value);
+        }
+
+        String deviceName = (String) msgData.get("id");
         String continuingMsg = (String) msgData.get("cont");
 
         if (deviceMap.get(deviceName) != null) {
             deviceMap.get(deviceName).recvMsg(msgData);
         }
-        
+
         // is not last message and it will be continued
-        if(continuingMsg != null && continuingMsg.equals("1")){
+        if (continuingMsg != null && continuingMsg.equals("1")) {
             return false;
         }
-        
+
         return true;
-        
     }
 
     public void parseIncomingMQTTData(String topic, String data) {

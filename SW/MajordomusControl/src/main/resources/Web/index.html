@@ -481,7 +481,10 @@
             <div class="config-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h3 style="margin: 0; border: none; padding: 0;">🔗 Serial Connections</h3>
-                    <button class="send-btn" onclick="addConnection()">+ Add Connection</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="send-btn" style="background-color: #8e44ad;" onclick="startAutodetect()">🔍 Autodetect</button>
+                        <button class="send-btn" onclick="addConnection()">+ Add Connection</button>
+                    </div>
                 </div>
                 <table id="connectionsTable">
                     <thead>
@@ -541,6 +544,39 @@
             </div>
         </div>
 
+        <!-- Autodetect modal -->
+        <div id="autodetectModal" class="modal">
+            <div class="modal-content" style="max-width: 650px;">
+                <h3>🔍 Autodetect Devices</h3>
+
+                <!-- Scanning state -->
+                <div id="autodetectScanning" style="text-align: center; padding: 30px;">
+                    <div style="font-size: 36px; margin-bottom: 15px;">⏳</div>
+                    <p style="font-size: 16px; color: #555;">Scanning all serial ports...</p>
+                    <p style="font-size: 13px; color: #999;">Sending broadcast status request 5× per port. This may take up to 30 seconds.</p>
+                </div>
+
+                <!-- Results state -->
+                <div id="autodetectResults" style="display: none;">
+                    <div id="autodetectResultsContent"></div>
+                    <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 13px; color: #555;">
+                        <strong>Note:</strong> Existing connections and devices will be replaced with the detected configuration. You can still edit before saving.
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="send-btn" style="background-color: #27ae60;" onclick="applyAutodetectResults()">✔ Apply to Configuration</button>
+                        <button class="send-btn" style="background-color: #95a5a6;" onclick="closeModal('autodetectModal')">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- No devices found state -->
+                <div id="autodetectEmpty" style="display: none; text-align: center; padding: 20px;">
+                    <div style="font-size: 36px; margin-bottom: 10px;">🚫</div>
+                    <p>No devices found on any port.</p>
+                    <button class="send-btn" style="background-color: #95a5a6;" onclick="closeModal('autodetectModal')">Close</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal pro editaci device -->
         <div id="deviceModal" class="modal">
             <div class="modal-content">
@@ -560,6 +596,7 @@
                             <option value="RoomIO">RoomIO</option>
                             <option value="RoomSensor">RoomSensor</option>
                             <option value="RoomIR">RoomIR</option>
+                            <option value="BoxIO">BoxIO</option>
                         </select>
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -1642,7 +1679,101 @@
         }
 
 
-        
+        let autodetectData = []; // stores last scan results
+
+        async function startAutodetect() {
+            // Show modal in scanning state
+            document.getElementById('autodetectScanning').style.display = 'block';
+            document.getElementById('autodetectResults').style.display = 'none';
+            document.getElementById('autodetectEmpty').style.display = 'none';
+            document.getElementById('autodetectModal').style.display = 'block';
+
+            try {
+                const res = await fetch('/api/config/autodetect');
+                if (!res.ok) throw new Error('Server error ' + res.status);
+
+                autodetectData = await res.json();
+                document.getElementById('autodetectScanning').style.display = 'none';
+
+                if (!autodetectData || autodetectData.length === 0) {
+                    document.getElementById('autodetectEmpty').style.display = 'block';
+                    return;
+                }
+
+                renderAutodetectResults(autodetectData);
+                document.getElementById('autodetectResults').style.display = 'block';
+
+            } catch (err) {
+                document.getElementById('autodetectScanning').style.display = 'none';
+                document.getElementById('autodetectEmpty').style.display = 'block';
+                document.getElementById('autodetectEmpty').querySelector('p').textContent = 'Error: ' + err.message;
+            }
+        }
+
+        function renderAutodetectResults(data) {
+            const content = document.getElementById('autodetectResultsContent');
+            let html = '';
+
+            data.forEach(portResult => {
+                html += `<div style="margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden;">
+                    <div style="background: #2c3e50; color: white; padding: 8px 12px; font-weight: bold;">
+                        🔌 ${portResult.portName}
+                        <span style="font-weight: normal; font-size: 13px; margin-left: 8px;">${portResult.devices.length} device(s)</span>
+                    </div>
+                    <table style="margin: 0; box-shadow: none; border-radius: 0;">
+                        <thead><tr><th>Device ID</th><th>Type</th></tr></thead>
+                        <tbody>`;
+
+                portResult.devices.forEach(dev => {
+                    html += `<tr>
+                        <td>${dev.id}</td>
+                        <td>${dev.type}</td>
+                    </tr>`;
+                });
+
+                html += `</tbody></table></div>`;
+            });
+
+            content.innerHTML = html;
+        }
+
+        function detectCommonPrefix(devices) {
+            if (!devices || devices.length === 0) return null;
+            const ids = devices.map(d => d.id);
+            // Extract the part before the first '-' as prefix
+            const prefixes = ids.map(id => {
+                const dash = id.indexOf('-');
+                return dash > 0 ? id.substring(0, dash) : null;
+            });
+            if (prefixes.some(p => p === null)) return null;
+            const first = prefixes[0];
+            return prefixes.every(p => p === first) ? first : null;
+        }
+
+        function applyAutodetectResults() {
+            connectionsConfig = [];
+            devicesConfig = [];
+
+            autodetectData.forEach((portResult, index) => {
+                const busNumber = index + 1;
+                const prefix = detectCommonPrefix(portResult.devices);
+                const connName = prefix
+                    ? `Bus ${busNumber} (${prefix})`
+                    : `Bus ${busNumber}`;
+                connectionsConfig.push({ name: connName, portName: portResult.portName });
+
+                // Add all discovered devices on this port
+                portResult.devices.forEach(dev => {
+                    devicesConfig.push({ connection: connName, name: dev.id, type: dev.type });
+                });
+            });
+
+            renderConnectionsTable();
+            renderDevicesConfigTable();
+            updateDeviceConnectionOptions();
+            closeModal('autodetectModal');
+        }
+
         // Spusti inicializaci
         initializeApp();
         

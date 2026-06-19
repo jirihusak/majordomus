@@ -95,10 +95,31 @@ public class RoomSens extends DeviceGeneric {
                 case "mo"  -> infFromDevice("evt", "motion", key, Integer.parseInt(data), false);
                 case "btn" -> {
                     parsedData = Integer.parseInt(data);
-                    infFromDevice("evt", "button0", "btn0", ((parsedData >> 0) & 1), false);
-                    infFromDevice("evt", "button1", "btn1", ((parsedData >> 1) & 1), false);
-                    infFromDevice("evt", "button2", "btn2", ((parsedData >> 2) & 1), false);
-                    infFromDevice("evt", "button3", "btn3", ((parsedData >> 3) & 1), false);
+                    for (int i = 0; i < 4; i++) {
+                        if (((parsedData >> i) & 1) != 0)
+                            infFromDevice("evt", "button" + i, "btn" + i, 1, false);
+                    }
+                }
+                case "btn2" -> {
+                    parsedData = Integer.parseInt(data);
+                    for (int i = 0; i < 4; i++) {
+                        if (((parsedData >> i) & 1) != 0)
+                            infFromDevice("evt", "button" + i + "Double", "btn2_" + i, 1, false);
+                    }
+                }
+                case "btn3" -> {
+                    parsedData = Integer.parseInt(data);
+                    for (int i = 0; i < 4; i++) {
+                        if (((parsedData >> i) & 1) != 0)
+                            infFromDevice("evt", "button" + i + "Triple", "btn3_" + i, 1, false);
+                    }
+                }
+                case "btnL" -> {
+                    parsedData = Integer.parseInt(data);
+                    for (int i = 0; i < 4; i++) {
+                        if (((parsedData >> i) & 1) != 0)
+                            infFromDevice("evt", "button" + i + "Long", "btnL_" + i, 1, false);
+                    }
                 }
 
                 // --- state: device status ---
@@ -135,7 +156,7 @@ public class RoomSens extends DeviceGeneric {
 
         String msg = "id:" + name;
 
-        if (Duration.between(lastStatusReq, now1).toSeconds() > 15) {
+        if (Duration.between(lastStatusReq, now1).toSeconds() > 30) {
             msg += ",msg:status";
             lastStatusReq = now1;
         } else {
@@ -390,17 +411,18 @@ public class RoomSens extends DeviceGeneric {
             publishHAConfig(mapper, topic + "switch/" + id + "/config", c);
         }
 
-        // DAC outputs dac0–dac1 (number 0–255)
+        // DAC outputs dac0–dac1 (number 0–10 V, step 0.1 V)
         for (int i = 0; i < 2; i++) {
             ObjectNode c = mapper.createObjectNode();
             String id = getName() + "_dac" + i;
-            c.put("name",          "dac" + i);
-            c.put("unique_id",     id);
-            c.put("state_topic",   base + "state/dac" + i);
-            c.put("command_topic", base + "cmd/dac" + i);
-            c.put("min",  0);
-            c.put("max",  255);
-            c.put("step", 1);
+            c.put("name",                "dac" + i);
+            c.put("unique_id",           id);
+            c.put("state_topic",         base + "state/dac" + i);
+            c.put("command_topic",       base + "cmd/dac" + i);
+            c.put("unit_of_measurement", "V");
+            c.put("min",  0.0);
+            c.put("max",  10.0);
+            c.put("step", 0.1);
             addAvailability(c, avail);
             c.set("device", device);
             publishHAConfig(mapper, topic + "number/" + id + "/config", c);
@@ -424,7 +446,7 @@ public class RoomSens extends DeviceGeneric {
             publishHAConfig(mapper, topic + "number/" + id + "/config", c);
         }
 
-        // Light setpoint (number 0–100)
+        // Light (switch, bool 0/1)
         {
             ObjectNode c = mapper.createObjectNode();
             String id = getName() + "_light";
@@ -432,12 +454,13 @@ public class RoomSens extends DeviceGeneric {
             c.put("unique_id",     id);
             c.put("state_topic",   base + "state/light");
             c.put("command_topic", base + "cmd/light");
-            c.put("min",  0);
-            c.put("max",  100);
-            c.put("step", 1);
+            c.put("payload_on",    "1");
+            c.put("payload_off",   "0");
+            c.put("state_on",      "1");
+            c.put("state_off",     "0");
             addAvailability(c, avail);
             c.set("device", device);
-            publishHAConfig(mapper, topic + "number/" + id + "/config", c);
+            publishHAConfig(mapper, topic + "switch/" + id + "/config", c);
         }
     }
 }

@@ -108,7 +108,7 @@ public class RoomIR extends DeviceGeneric {
 
         String msg = "id:" + name;
 
-        if (Duration.between(lastStatusReq, now1).toSeconds() > 15) {
+        if (Duration.between(lastStatusReq, now1).toSeconds() > 30) {
             msg += ",msg:status";
             lastStatusReq = now1;
         } else {

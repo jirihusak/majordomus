@@ -149,7 +149,7 @@ public abstract class DeviceGeneric {
             changedAndSend = true;
         }
 
-        if (!property.lastData.equals(value)) {
+        if (!property.data.equals(value) || !retain) {
             changedAndSend = true;
         }
         property.lastData = property.data;

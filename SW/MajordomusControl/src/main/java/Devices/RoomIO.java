@@ -70,6 +70,8 @@ public class RoomIO extends DeviceGeneric {
     // -------------------------------------------------------------------------
     @Override
     public synchronized void setDataByKey(String key, String data) {
+        
+        //System.out.println("IO: " + key + ":" + data);
         int parsedData;
         try {
             switch (key) {
@@ -111,11 +113,33 @@ public class RoomIO extends DeviceGeneric {
                     }
                 }
 
-                // --- evt: button state on change (not retained) ---
+                // --- evt: button events on change (not retained) ---
                 case "btn" -> {
                     parsedData = Integer.parseInt(data);
                     for (int i = 0; i < 8; i++) {
-                        infFromDevice("evt", "button" + i, "btn" + i, ((parsedData >> i) & 1), false);
+                        if (((parsedData >> i) & 1) != 0)
+                            infFromDevice("evt", "button" + i, "btn" + i, 1, false);
+                    }
+                }
+                case "btn2" -> {
+                    parsedData = Integer.parseInt(data);
+                    for (int i = 0; i < 8; i++) {
+                        if (((parsedData >> i) & 1) != 0)
+                            infFromDevice("evt", "button" + i + "Double", "btn2_" + i, 1, false);
+                    }
+                }
+                case "btn3" -> {
+                    parsedData = Integer.parseInt(data);
+                    for (int i = 0; i < 8; i++) {
+                        if (((parsedData >> i) & 1) != 0)
+                            infFromDevice("evt", "button" + i + "Triple", "btn3_" + i, 1, false);
+                    }
+                }
+                case "btnL" -> {
+                    parsedData = Integer.parseInt(data);
+                    for (int i = 0; i < 8; i++) {
+                        if (((parsedData >> i) & 1) != 0)
+                            infFromDevice("evt", "button" + i + "Long", "btnL_" + i, 1, false);
                     }
                 }
 
@@ -146,7 +170,7 @@ public class RoomIO extends DeviceGeneric {
 
         String msg = "id:" + name;
 
-        if (Duration.between(lastStatusReq, now1).toSeconds() > 15) {
+        if (Duration.between(lastStatusReq, now1).toSeconds() > 30) {
             msg += ",msg:status";
             lastStatusReq = now1;
         } else {
@@ -307,17 +331,18 @@ public class RoomIO extends DeviceGeneric {
             publishHAConfig(mapper, topic + "switch/" + id + "/config", c);
         }
 
-        // DAC outputs dac0–dac1 (number 0–255)
+        // DAC outputs dac0–dac1 (number 0–10 V, step 0.1 V)
         for (int i = 0; i < 2; i++) {
             ObjectNode c = mapper.createObjectNode();
             String id = getName() + "_dac" + i;
-            c.put("name",          "dac" + i);
-            c.put("unique_id",     id);
-            c.put("state_topic",   base + "state/dac" + i);
-            c.put("command_topic", base + "cmd/dac" + i);
-            c.put("min",  0);
-            c.put("max",  255);
-            c.put("step", 1);
+            c.put("name",                "dac" + i);
+            c.put("unique_id",           id);
+            c.put("state_topic",         base + "state/dac" + i);
+            c.put("command_topic",       base + "cmd/dac" + i);
+            c.put("unit_of_measurement", "V");
+            c.put("min",  0.0);
+            c.put("max",  10.0);
+            c.put("step", 0.1);
             addAvailability(c, avail);
             c.set("device", device);
             publishHAConfig(mapper, topic + "number/" + id + "/config", c);

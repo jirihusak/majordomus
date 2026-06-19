@@ -91,30 +91,49 @@ public final class SerialCommunication {
 
     public synchronized void reloadConfiguration() {
         System.out.println("Reloading SerialCommunication configuration...");
-
         try {
-            // Zastavit komunikaci a ukončit stará vlákna
-            stopDataPooling();
-            for (ConnectionThread conn : connections) {
-                conn.stopThread();
-            }
-            Thread.sleep(500);
-
-            // Vyčistit seznam
-            connections.clear();
-
+            stopAllConnections();
             initConnetions();
-
-            // Spustit komunikaci znovu
             Thread.sleep(500);
             startDataPooling();
-
             System.out.println("SerialCommunication configuration reloaded successfully");
-
         } catch (Exception e) {
             System.err.println("Error reloading SerialCommunication: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Stops and closes all active ConnectionThreads.
+     * Used before autodetect scanning or full reload.
+     */
+    public synchronized void stopAllConnections() {
+        stopDataPooling();
+        for (ConnectionThread conn : connections) {
+            conn.stopThread();
+        }
+        for (ConnectionThread conn : connections) {
+            try {
+                conn.join(2000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        connections.clear();
+    }
+
+    /**
+     * Re-initializes connections from current configuration and starts polling.
+     * Used after autodetect scanning or full reload.
+     */
+    public synchronized void restartAllConnections() {
+        initConnetions();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        startDataPooling();
     }
 
     public synchronized void startDataPooling() {
@@ -202,28 +221,27 @@ public final class SerialCommunication {
 
         private void poolAllDevices() {
             for (String device : devicesName) {
+                if (!shouldRun) break;
 
-                //lock.lock();
                 connectionDataSend(DeviceInterface.getInstance().getSendSerialData(device));
 
                 // wait for reply
                 lock.lock();
                 try {
-                    boolean code = msgReceived.await(700, TimeUnit.MILLISECONDS);
-                    if (code == false) {
-                        //System.err.println(java.time.LocalDateTime.now() + " Device not responding:" + device);
-                    }
+                    msgReceived.await(700, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException e) {
-                    System.err.println(e);
+                    Thread.currentThread().interrupt();
                 } finally {
                     lock.unlock();
                 }
+
+                if (!shouldRun) break;
 
                 // sleep
                 try {
                     Thread.sleep(15);
                 } catch (InterruptedException ex) {
-                    System.err.println(ex);
+                    Thread.currentThread().interrupt();
                 }
             }
         }
@@ -313,7 +331,7 @@ public final class SerialCommunication {
                             Thread.sleep(poolInterval - duration);
                         }
                     } catch (InterruptedException ex) {
-                        System.err.println(ex);
+                        break;
                     }
                 }
 
@@ -360,7 +378,7 @@ public final class SerialCommunication {
         crc &= 0xff;
 
         for (int i = 0; i < len; i++) {
-            crc = crc8_table[crc ^ data[i]];
+            crc = crc8_table[(crc ^ data[i]) & 0xFF];
         }
         return crc;
     }

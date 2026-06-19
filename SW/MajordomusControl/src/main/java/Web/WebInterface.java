@@ -294,6 +294,29 @@ public class WebInterface {
                 ctx.json(Map.of("success", false, "message", "Error saving configuration: " + e.getMessage()));
             }
         });
+
+        app.get("/api/config/autodetect", ctx -> {
+            try {
+                List<SerialCom.SerialAutoDetect.ScanResult> scanResults = SerialCom.SerialAutoDetect.scan();
+
+                List<Map<String, Object>> response = new ArrayList<>();
+                for (SerialCom.SerialAutoDetect.ScanResult sr : scanResults) {
+                    List<Map<String, String>> devs = new ArrayList<>();
+                    for (SerialCom.SerialAutoDetect.DiscoveredDevice dd : sr.devices) {
+                        devs.add(Map.of("id", dd.id, "type", dd.type));
+                    }
+                    Map<String, Object> portEntry = new HashMap<>();
+                    portEntry.put("portName", sr.portName);
+                    portEntry.put("devices", devs);
+                    response.add(portEntry);
+                }
+
+                ctx.status(200).json(response);
+            } catch (Exception e) {
+                e.printStackTrace();
+                ctx.status(500).json(Map.of("success", false, "message", "Autodetect error: " + e.getMessage()));
+            }
+        });
     }
 
     private void setupRestEndpointsService(Javalin app) {

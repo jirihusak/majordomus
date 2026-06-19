@@ -36,9 +36,10 @@ import jakarta.xml.bind.Unmarshaller;
  */
 public class Configuration {
     
-    // load config file 
+    // load config file
     private static Configuration singletonInstance = null;
-    private static final String CONFIG_XML_PATH = "config.xml";
+    private static final String CONFIG_XML_PATH =
+            System.getenv("CONFIG_PATH") != null ? System.getenv("CONFIG_PATH") : "config.xml";
     private ConfXmlObject configXMLObject = new ConfXmlObject();
     private JAXBContext context;
     private Unmarshaller um = null;
@@ -67,8 +68,42 @@ public class Configuration {
         catch(JAXBException e) {e.printStackTrace();}
         
         loadFromFile();
-        
+        applyEnvVarOverrides();
+
         //saveToFile();
+    }
+
+    private void applyEnvVarOverrides()
+    {
+        String mqttBroker = System.getenv("MQTT_BROKER");
+        if (mqttBroker == null) return;
+
+        // Ensure at least one broker entry exists
+        if (configXMLObject.getMQTTBroker().isEmpty())
+            configXMLObject.getMQTTBroker().add(new ConfXmlObject.MQTTBroker());
+
+        ConfXmlObject.MQTTBroker broker = configXMLObject.getMQTTBroker().get(0);
+        broker.address = mqttBroker;
+
+        String mqttUsername = System.getenv("MQTT_USERNAME");
+        if (mqttUsername != null) broker.username = mqttUsername;
+
+        String mqttPassword = System.getenv("MQTT_PASSWORD");
+        if (mqttPassword != null) broker.passwd = mqttPassword;
+
+        String mqttTopic = System.getenv("MQTT_TOPIC");
+        if (mqttTopic != null) broker.topic = mqttTopic;
+
+        String haDiscovery = System.getenv("HA_DISCOVERY");
+        String haTopic     = System.getenv("HA_TOPIC");
+        if (haDiscovery != null || haTopic != null) {
+            if (configXMLObject.getHASettings().isEmpty())
+                configXMLObject.getHASettings().add(new ConfXmlObject.HASettings());
+
+            ConfXmlObject.HASettings ha = configXMLObject.getHASettings().get(0);
+            if (haDiscovery != null) ha.enable = Boolean.parseBoolean(haDiscovery);
+            if (haTopic     != null) ha.topic  = haTopic;
+        }
     }
     
     private void loadFromFile()
