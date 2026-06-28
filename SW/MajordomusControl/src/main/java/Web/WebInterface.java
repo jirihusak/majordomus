@@ -64,8 +64,12 @@ public class WebInterface {
             config.staticFiles.add("/Web", Location.CLASSPATH);
         }).start(8899);
 
-        // Serve main page
-        app.get("/", ctx -> ctx.redirect("/index.html"));
+        // Serve main page directly (redirect breaks HA ingress proxy)
+        app.get("/", ctx -> {
+            try (var stream = WebInterface.class.getResourceAsStream("/Web/index.html")) {
+                ctx.contentType("text/html").result(stream);
+            }
+        });
 
         // REST API endpoints
         setupRestEndpoints(app);
