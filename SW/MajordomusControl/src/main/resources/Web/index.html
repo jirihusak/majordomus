@@ -328,7 +328,7 @@
 <body>
     <div class="sidebar">
         <div class="logo">
-            <img src="/img/logoWhite.png" alt="Majordomus" style="width: 100%; height: auto; display: block;">
+            <img src="img/logoWhite.png" alt="Majordomus" style="width: 100%; height: auto; display: block;">
         </div>
         <div class="menu">
             <button class="active" onclick="showPage('devices', event)">Devices</button>
@@ -624,7 +624,7 @@
 
         async function loadDevices() {
             try {
-                const res = await fetch('/api/devices');
+                const res = await fetch('api/devices');
                 if (!res.ok) return;
                 
                 devicesData = await res.json();
@@ -643,7 +643,7 @@
 
         async function loadCommands() {
             try {
-                const res = await fetch('/api/commands');
+                const res = await fetch('api/commands');
                 if (!res.ok) return;
                 
                 commandsConfig = await res.json();
@@ -654,7 +654,7 @@
 
         async function loadConfiguration() {
             try {
-                const res = await fetch('/api/config');
+                const res = await fetch('api/config');
                 if (!res.ok) return;
                 
                 const config = await res.json();
@@ -874,7 +874,7 @@
                     devices: devicesConfig
                 };
                 
-                const res = await fetch('/api/config', {
+                const res = await fetch('api/config', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1199,7 +1199,7 @@
             const value = input.value;
            
             try {
-                const res = await fetch('/api/device/send-command', {
+                const res = await fetch('api/device/send-command', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1288,7 +1288,7 @@
 
         async function loadFirmwareList() {
             try {
-                const res = await fetch('/api/firmware/list');
+                const res = await fetch('api/firmware/list');
                 if (!res.ok) return;
 
                 firmwareList = await res.json(); // uložíme FW
@@ -1357,7 +1357,7 @@
             //console.log(`Starting firmware update for ${deviceId} (${device.type}) fw ${firmwareVersion}`);
 
             try {
-                const res = await fetch('/api/firmware/update', {
+                const res = await fetch('api/firmware/update', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1391,7 +1391,7 @@
             const resultDiv = document.getElementById('updateResult');
 
             let interval = setInterval(async () => {
-                const res = await fetch(`/api/firmware/progress`);
+                const res = await fetch(`api/firmware/progress`);
                 const data = await res.json();
 
                 progressBar.style.width = data.progress + "%";
@@ -1436,7 +1436,7 @@
             }
             
             try {
-                const res = await fetch('/api/device/change-id', {
+                const res = await fetch('api/device/change-id', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1482,7 +1482,7 @@
             }
             
             try {
-                const res = await fetch('/api/device/change-id', {
+                const res = await fetch('api/device/change-id', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1689,7 +1689,7 @@
             document.getElementById('autodetectModal').style.display = 'block';
 
             try {
-                const res = await fetch('/api/config/autodetect');
+                const res = await fetch('api/config/autodetect');
                 if (!res.ok) throw new Error('Server error ' + res.status);
 
                 autodetectData = await res.json();

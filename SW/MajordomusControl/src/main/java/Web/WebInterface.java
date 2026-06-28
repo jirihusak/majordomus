@@ -435,7 +435,7 @@ public class WebInterface {
 //            }
         });
     
-        app.get("api/firmware/progress", ctx -> {
+        app.get("/api/firmware/progress", ctx -> {
 
             ctx.json(Map.of(
                 "progress", SerialCommunication.getInstance().getSerialUpdater().getProgress(),
