@@ -120,13 +120,22 @@ public class MQTTinterface extends Thread {
 
         System.out.println("MQTT thread starting.....");
 
-        try {
-            initializeMQTTConnection();
-        } catch (Exception e) {
-            System.err.println("Error initializing MQTT: " + e.getMessage());
-            e.printStackTrace();
-            return;
+        // Retry initial connection until successful or stopped
+        while (!shouldStop) {
+            try {
+                initializeMQTTConnection();
+                break; // Connected successfully, proceed to publish loop
+            } catch (Exception e) {
+                System.err.println("Error initializing MQTT: " + e.getMessage() + " — retrying in 30s");
+                try {
+                    Thread.sleep(30000);
+                } catch (InterruptedException ie) {
+                    if (shouldStop) return;
+                }
+            }
         }
+
+        if (shouldStop) return;
 
         // Message publishing loop
         while (!shouldStop) {

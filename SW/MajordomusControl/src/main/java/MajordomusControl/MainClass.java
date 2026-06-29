@@ -60,11 +60,18 @@ public class MainClass {
         
         // start we interface
         WebInterface.getInstance();
-        
+
         // start GUI
 //        if(args.length > 0 && args[0].equals("-gui")){
 //            Application.launch(AppGUI.class, args);
 //        }
+
+        // Keep main thread alive so JVM doesn't exit when MQTT/serial threads die
+        try {
+            Thread.currentThread().join();
+        } catch (InterruptedException e) {
+            System.out.println("Main thread interrupted, shutting down.");
+        }
     }
     
 }
