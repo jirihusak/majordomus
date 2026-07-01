@@ -62,7 +62,7 @@ public class WebInterface {
         Javalin app = Javalin.create(config -> {
             // Serve static files (HTML, CSS, JS) from resources/public
             config.staticFiles.add("/Web", Location.CLASSPATH);
-        }).start(8899);
+        }).start("0.0.0.0", 8899);
 
         // Serve index.html directly — redirect breaks HA ingress proxy
         app.get("/", ctx -> {
