@@ -64,15 +64,17 @@ public class WebInterface {
             config.staticFiles.add("/Web", Location.CLASSPATH);
         }).start("0.0.0.0", 8899);
 
-        // Serve index.html directly — redirect breaks HA ingress proxy
+        // Serve index.html directly — redirect breaks HA ingress proxy.
+        // Read the resource fully here: Javalin writes the result after the
+        // handler returns, so the stream must not be closed inside the handler.
         app.get("/", ctx -> {
             try (var stream = WebInterface.class.getResourceAsStream("/Web/index.html")) {
-                ctx.contentType("text/html").result(stream);
+                ctx.contentType("text/html").result(stream.readAllBytes());
             }
         });
         app.get("/index.html", ctx -> {
             try (var stream = WebInterface.class.getResourceAsStream("/Web/index.html")) {
-                ctx.contentType("text/html").result(stream);
+                ctx.contentType("text/html").result(stream.readAllBytes());
             }
         });
 
