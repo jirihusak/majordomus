@@ -8,7 +8,7 @@ Výsledek? Přehledné automatizace, které zvládnete vytvořit i bez programá
 
 Node-RED je open-source a zcela zdarma → [nodered.org](https://nodered.org/)
 
-![Node-RED rozhraní](../assets/node-red-ui.jpg)
+![Node-RED rozhraní](../assets/node-red.png)
 
 ---
 

@@ -36,12 +36,25 @@ nav:
   - Hardware:
     - Co potřebuji pro start: cs/how-start.md
     - Topologie: cs/topology.md
+    - RoomSensor: cs/hw-roomsensor.md
+    - RoomIO: cs/hw-roomio.md
+    - BoxIO: cs/hw-boxio.md
+    - Převodník RS485 2 USB: cs/hw-rs485-usb.md
+  - Home Assistant:
+    - Co je Home Assistant: cs/ha-introduction.md
+    - Instalace: cs/ha-installation.md
+    - Konfigurace Home Assistant: cs/ha-configuration.md
   - Majordomus Control:
     - Architektura SW: cs/sw-architecture.md
     - Instalace SW: cs/sw-installation.md
     - Konfigurace SW: cs/sw-configuration.md
+    - Aktualizace firmware: cs/fw-update.md
   - Node-RED:
     - Co je Node-RED: cs/sw-node-red.md
+  - Pro vývojáře:
+    - MQTT protokol: cs/dev-mqtt-protocol.md
+    - Protokol RS-485: cs/dev-rs485-protocol.md
+  - Řešení problémů: cs/troubleshooting.md
     
 
 markdown_extensions:

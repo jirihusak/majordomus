@@ -28,8 +28,8 @@ Pro první spuštění a vyzkoušení systému vám stačí:
 Majordomus využívá výhradně open-source software. Nemusíte kupovat žádné licence ani řídící software — všechny nástroje jsou zdarma ke stažení.
 
 - **OS Linux nebo Windows** — řídící jednotka běží na obojím.
-- **[MajordomusControl](../software/control.md)** — jádro systému, které komunikuje s hardwarem a poskytuje MQTT rozhraní.
-- **Aplikační software** — například [Node-RED](../software/node-red.md) pro tvorbu logiky a automatizací.
+- **[MajordomusControl](sw-architecture.md)** — jádro systému, které komunikuje s hardwarem a poskytuje MQTT rozhraní.
+- **Aplikační software** — například [Node-RED](sw-node-red.md) pro tvorbu logiky a automatizací.
 
 
 

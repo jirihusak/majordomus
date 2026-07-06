@@ -51,7 +51,7 @@ sudo systemctl restart mosquitto.service
 ```
 
 !!! warning "Pouze pro testování"
-    Anonymní přístup bez hesla je vhodný jen pro první vyzkoušení na lokální síti. Pro reálné nasazení je nutné nastavit přihlašování jménem a heslem, případně šifrování komunikace pomocí TLS. Návod najdete v kapitole [Zabezpečení MQTT](mqtt-security.md).
+    Anonymní přístup bez hesla je vhodný jen pro první vyzkoušení na lokální síti. Pro reálné nasazení je nutné nastavit přihlašování jménem a heslem, případně šifrování komunikace pomocí TLS.
 
 ---
 
