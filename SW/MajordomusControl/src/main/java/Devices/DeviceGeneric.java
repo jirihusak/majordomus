@@ -240,4 +240,31 @@ public abstract class DeviceGeneric {
                     true, 0);
         } catch (JsonProcessingException ex) { }
     }
+
+    /**
+     * Publishes Home Assistant MQTT device triggers for touch-button events.
+     * Each of the {@code count} buttons exposes short / double / triple / long
+     * press as a stateless device trigger (these appear in HA automations, not
+     * as entities). The firmware emits "1" on evt/button&lt;i&gt; for a single
+     * press and on evt/button&lt;i&gt;{Double,Triple,Long} for the others.
+     */
+    protected void publishButtonTriggers(ObjectMapper mapper, String discoveryPrefix,
+                                         ObjectNode device, String base, int count) {
+        String[] topicSuffix = {"", "Double", "Triple", "Long"};
+        String[] haType = {"button_short_press", "button_double_press",
+                           "button_triple_press", "button_long_press"};
+        for (int i = 0; i < count; i++) {
+            for (int e = 0; e < haType.length; e++) {
+                ObjectNode c = mapper.createObjectNode();
+                String id = getName() + "_btn" + i + "_" + haType[e];
+                c.put("automation_type", "trigger");
+                c.put("type",    haType[e]);
+                c.put("subtype", "button_" + (i + 1));
+                c.put("topic",   base + "evt/button" + i + topicSuffix[e]);
+                c.put("payload", "1");
+                c.set("device", device);
+                publishHAConfig(mapper, discoveryPrefix + "device_automation/" + id + "/config", c);
+            }
+        }
+    }
 }

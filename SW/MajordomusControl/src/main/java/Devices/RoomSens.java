@@ -328,10 +328,12 @@ public class RoomSens extends DeviceGeneric {
         {
             ObjectNode c = mapper.createObjectNode();
             String id = getName() + "_noise";
-            c.put("name",        "noise");
-            c.put("unique_id",   id);
-            c.put("state_topic", base + "tele/noise");
-            c.put("state_class", "measurement");
+            c.put("name",               "noise");
+            c.put("unique_id",          id);
+            c.put("state_topic",        base + "tele/noise");
+            c.put("unit_of_measurement","dB");
+            c.put("device_class",       "sound_pressure");
+            c.put("state_class",        "measurement");
             addAvailability(c, avail);
             c.set("device", device);
             publishHAConfig(mapper, topic + "sensor/" + id + "/config", c);
@@ -482,5 +484,8 @@ public class RoomSens extends DeviceGeneric {
             c.set("device", device);
             publishHAConfig(mapper, topic + "switch/" + id + "/config", c);
         }
+
+        // Button events: single / double / triple / long press (device triggers)
+        publishButtonTriggers(mapper, topic, device, base, 4);
     }
 }

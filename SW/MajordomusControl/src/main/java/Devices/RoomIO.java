@@ -347,5 +347,8 @@ public class RoomIO extends DeviceGeneric {
             c.set("device", device);
             publishHAConfig(mapper, topic + "number/" + id + "/config", c);
         }
+
+        // Button events: single / double / triple / long press (device triggers)
+        publishButtonTriggers(mapper, topic, device, base, 8);
     }
 }

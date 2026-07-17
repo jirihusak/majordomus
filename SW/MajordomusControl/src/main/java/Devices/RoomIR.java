@@ -88,7 +88,7 @@ public class RoomIR extends DeviceGeneric {
         irImage = new float[IrImageSize];
 
         cmdList.addAll(Arrays.asList("reboot"));
-        infList.addAll(Arrays.asList("version", "irImg", "maxT", "fire", "pCount"));
+        infList.addAll(Arrays.asList("version", "irImg", "maxT", "minT", "fire", "pCount"));
 
         for (String s : cmdList) {
             propertyMap.put(s, new DeviceProperty());
@@ -198,13 +198,17 @@ public class RoomIR extends DeviceGeneric {
     // IR image processing - runs once per complete frame
     // -------------------------------------------------------------------------
     private void processIrImage() {
-        // --- max temperature & fire detection ---
+        // --- min/max temperature & fire detection ---
         float maxTemp = irImage[0];
+        float minTemp = irImage[0];
         for (float t : irImage) {
             if (t > maxTemp) maxTemp = t;
+            if (t < minTemp) minTemp = t;
         }
         infFromDevice("tele", "maxTemperature", "maxT",
                 (float) (Math.round(maxTemp * 10.0) / 10.0), true);
+        infFromDevice("tele", "minTemperature", "minT",
+                (float) (Math.round(minTemp * 10.0) / 10.0), true);
         infFromDevice("tele", "fireAlarm", "fire",
                 (maxTemp > irConfig.fireThreshold) ? 1 : 0, true);
 
@@ -527,6 +531,21 @@ public class RoomIR extends DeviceGeneric {
             publishHAConfig(mapper, topic + "sensor/" + id + "/config", c);
         }
 
+        // Minimum temperature in the image
+        {
+            ObjectNode c = mapper.createObjectNode();
+            String id = getName() + "_minT";
+            c.put("name",               "minTemperature");
+            c.put("unique_id",          id);
+            c.put("state_topic",        base + "tele/minTemperature");
+            c.put("unit_of_measurement","°C");
+            c.put("device_class",       "temperature");
+            c.put("state_class",        "measurement");
+            addAvailability(c, avail);
+            c.set("device", device);
+            publishHAConfig(mapper, topic + "sensor/" + id + "/config", c);
+        }
+
         // Fire alarm - binary sensor
         {
             ObjectNode c = mapper.createObjectNode();
@@ -555,7 +574,7 @@ public class RoomIR extends DeviceGeneric {
             publishHAConfig(mapper, topic + "sensor/" + id + "/config", c);
         }
 
-        // Presence zones - occupancy binary sensors
+        // Zones - motion binary sensors (one per configured & enabled zone)
         for (int i = 0; i < MAX_ZONES; i++) {
             String id = getName() + "_zone" + i;
             String cfgTopic = topic + "binary_sensor/" + id + "/config";
@@ -565,10 +584,10 @@ public class RoomIR extends DeviceGeneric {
                 ObjectNode c = mapper.createObjectNode();
                 String zoneName = (zone.name != null && !zone.name.isEmpty())
                         ? zone.name : ("zone" + i);
-                c.put("name",        "presence " + zoneName);
+                c.put("name",        "motion " + zoneName);
                 c.put("unique_id",   id);
                 c.put("state_topic", base + "tele/zone" + i + "Presence");
-                c.put("device_class","occupancy");
+                c.put("device_class","motion");
                 c.put("payload_on",  "1");
                 c.put("payload_off", "0");
                 addAvailability(c, avail);
