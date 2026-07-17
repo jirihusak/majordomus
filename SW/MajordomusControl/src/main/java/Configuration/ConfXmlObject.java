@@ -73,6 +73,43 @@ public class ConfXmlObject {
         public String connection;
         @XmlAttribute(name = "type")
         public String type;
+
+        // Optional IR image processing settings (RoomIR devices only)
+        @XmlElement(name = "irConfig")
+        public IRConfig irConfig;
+    }
+
+    // IR thermal image processing settings for RoomIR (32x24 px, °C)
+    public static class IRConfig
+    {
+        @XmlAttribute(name = "fireThreshold")
+        public float fireThreshold = 100.0f;   // °C - above this -> fire alarm
+        @XmlAttribute(name = "personMinTemp")
+        public float personMinTemp = 28.0f;    // °C - lower bound of human body band
+        @XmlAttribute(name = "personMaxTemp")
+        public float personMaxTemp = 38.0f;    // °C - upper bound of human body band
+        @XmlAttribute(name = "minClusterSize")
+        public int minClusterSize = 8;         // px - smaller clusters are noise
+
+        @XmlElement(name = "zone")
+        public List<IRZone> zones = new ArrayList<>();  // up to 4 presence zones
+    }
+
+    // Rectangular presence zone in IR pixel coordinates (x: 0-31, y: 0-23)
+    public static class IRZone
+    {
+        @XmlAttribute(name = "name")
+        public String name;
+        @XmlAttribute(name = "x")
+        public int x;
+        @XmlAttribute(name = "y")
+        public int y;
+        @XmlAttribute(name = "w")
+        public int w;
+        @XmlAttribute(name = "h")
+        public int h;
+        @XmlAttribute(name = "enabled")
+        public boolean enabled = true;
     }
     //----------------- END DEVICE ---------------------
     

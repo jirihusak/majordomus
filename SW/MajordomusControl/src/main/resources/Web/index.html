@@ -349,6 +349,7 @@
                 </div>
                 <div style="flex: 1;">
                     <div id="deviceDetailsContainer"></div>
+                    <div id="deviceIrConfigContainer"></div>
                     <div id="deviceCommandsContainer"></div>
                 </div>
             </div>
@@ -520,6 +521,7 @@
             <!-- Save Button -->
             <div class="save-section">
                 <button class="send-btn" style="background-color: #27ae60; font-size: 16px; padding: 10px 30px;" onclick="saveConfiguration()">💾 Save All Configuration</button>
+                <span id="saveConfigStatus" style="margin-left: 12px; font-weight: bold;"></span>
             </div>
         </div>
 
@@ -620,7 +622,6 @@
         let editingDeviceIndex = -1;
         let firmwareList = [];
         let lastRenderedDeviceId = null;
-        let irCanvasCache = new Map(); // Cache pro IR canvas data
 
         async function loadDevices() {
             try {
@@ -717,7 +718,7 @@
                     <td>${conn.portName}</td>
                     <td>
                         <button class="edit-btn" onclick="editConnection(${index})">Edit</button>
-                        <button class="delete-btn" onclick="deleteConnection(${index})">Delete</button>
+                        <button class="delete-btn" onclick="deleteConnection(this, ${index})">Delete</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -736,7 +737,7 @@
                     <td>${dev.type}</td>
                     <td>
                         <button class="edit-btn" onclick="editDevice(${index})">Edit</button>
-                        <button class="delete-btn" onclick="deleteDevice(${index})">Delete</button>
+                        <button class="delete-btn" onclick="deleteDevice(this, ${index})">Delete</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -760,11 +761,32 @@
             document.getElementById('connectionModal').style.display = 'block';
         }
 
-        function deleteConnection(index) {
-            if (confirm('Are you sure you want to delete this connection?')) {
+        // Potvrzení mazání druhým kliknutím na tlačítko. Záměrně žádný confirm():
+        // Firefox umí dialogy stránky potichu potlačit (confirm pak vrací false)
+        // a mazání by bez jakékoli odezvy přestalo fungovat.
+        function armDeleteButton(btn, action) {
+            if (btn.dataset.armed) {
+                btn.dataset.armed = '';
+                action();
+                return;
+            }
+            btn.dataset.armed = '1';
+            const original = btn.textContent;
+            btn.textContent = 'Confirm?';
+            setTimeout(() => {
+                if (btn.dataset.armed) {
+                    btn.dataset.armed = '';
+                    btn.textContent = original;
+                }
+            }, 3000);
+        }
+
+        function deleteConnection(btn, index) {
+            armDeleteButton(btn, () => {
                 connectionsConfig.splice(index, 1);
                 renderConnectionsTable();
-            }
+                updateDeviceConnectionOptions();
+            });
         }
 
         function saveConnection(event) {
@@ -807,11 +829,11 @@
             document.getElementById('deviceModal').style.display = 'block';
         }
 
-        function deleteDevice(index) {
-            if (confirm('Are you sure you want to delete this device?')) {
+        function deleteDevice(btn, index) {
+            armDeleteButton(btn, () => {
                 devicesConfig.splice(index, 1);
                 renderDevicesConfigTable();
-            }
+            });
         }
 
         function saveDevice(event) {
@@ -883,17 +905,33 @@
                 });
                 
                 if (res.ok) {
-                    alert('Configuration saved successfully!');
+                    showSaveConfigStatus('✔ Configuration saved', '#27ae60');
                     // reload data
                     loadDevices();
                     loadConfiguration();
                     loadCommands();
                 } else {
-                    alert('Error saving configuration!');
+                    let message = 'Error saving configuration!';
+                    try {
+                        const err = await res.json();
+                        if (err.message) message = err.message;
+                    } catch (e) { /* keep default message */ }
+                    showSaveConfigStatus('✖ ' + message, '#e74c3c');
                 }
             } catch (error) {
-                alert('Error saving configuration!');
+                showSaveConfigStatus('✖ Error saving configuration!', '#e74c3c');
             }
+        }
+
+        // Nenápadný status místo alert() - opakované alerty vedou ve Firefoxu
+        // k nabídce "zabránit dalším dialogům", která pak potichu zablokuje
+        // všechny confirm()/alert() na stránce.
+        function showSaveConfigStatus(text, color) {
+            const status = document.getElementById('saveConfigStatus');
+            if (!status) return;
+            status.textContent = text;
+            status.style.color = color;
+            setTimeout(() => { status.textContent = ''; }, 5000);
         }
 
         function updateDeviceTree() {
@@ -930,6 +968,7 @@
                         e.stopPropagation();
                         showDeviceDetails(d, true);
                         showDeviceCommands(d);
+                        showDeviceIrConfig(d);
                     };
                     ul.appendChild(li);
                 });
@@ -1010,10 +1049,11 @@
                             }
                             
                             if (Array.isArray(temperatures) && temperatures.length === 768) {
-                                renderIrImage(canvasId, scaleId, device.id, temperatures, 32, 24);
+                                renderIrImageQuiet(canvasId, scaleId, device.id, temperatures, 32, 24);
                             } else {
                                 console.error('Neplatná IR data - očekáváno 768 hodnot, získáno:', temperatures ? temperatures.length : 0);
                             }
+                            attachZoneDrawHandlers(canvasId, device.id);
                         }, 50);
 
                     } else {
@@ -1082,7 +1122,6 @@
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
 
-            const ctx = canvas.getContext('2d');
             const scaleCanvas = document.getElementById(scaleId);
             const scaleCtx = scaleCanvas ? scaleCanvas.getContext('2d') : null;
 
@@ -1135,20 +1174,15 @@
             const pixelWidth = canvas.width / width;
             const pixelHeight = canvas.height / height;
 
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    const index = y * width + x;
-                    const temp = temperatures[index];
-                    
-                    ctx.fillStyle = tempToColor(temp);
-                    ctx.fillRect(
-                        x * pixelWidth,
-                        y * pixelHeight,
-                        pixelWidth,
-                        pixelHeight
-                    );
-                }
+            // Předpočítané barvy podkladu - redrawIrCanvas z nich obraz kdykoli
+            // překreslí přímo na viditelný canvas. Záměrně žádný offscreen buffer
+            // a drawImage(canvas): anti-fingerprinting ochrana Firefoxu blokuje
+            // čtení pixelů z canvasu, takže kopie přes drawImage zůstane prázdná.
+            const colors = new Array(width * height);
+            for (let i = 0; i < width * height; i++) {
+                colors[i] = tempToColor(temperatures[i]);
             }
+            canvas._irColors = colors;
 
             if (scaleCtx) {
                 const scaleHeight = scaleCanvas.height;
@@ -1159,9 +1193,12 @@
                 }
             }
 
-            setupMouseHover(canvas, temperatures, width, height, pixelWidth, pixelHeight);
+            // Ulož poslední data pro hover a překresli obraz včetně zón detekce
+            canvas._irTemps = temperatures;
+            redrawIrCanvas(canvas, deviceId);
+            setupMouseHover(canvas, deviceId, width, height, pixelWidth, pixelHeight);
         }
-        
+
         function showDeviceCommands(device) {
             
             const container = document.getElementById('deviceCommandsContainer');
@@ -1211,14 +1248,11 @@
                     })
                 });
                 
-                if (res.ok) {
-                    alert(`Device ID changed from ${currentID} to ${newID} successfully!`);
-                    
-                } else {
-                    alert('Error changing device ID!');
-
+                if (!res.ok) {
+                    console.error(`Command ${command} for ${deviceId} failed:`, res.status);
                 }
             } catch (error) {
+                console.error(`Command ${command} for ${deviceId} failed:`, error);
             }
         }
 
@@ -1545,6 +1579,7 @@
                     console.log("Selecting first device:", devicesData[0]);
                     showDeviceDetails(devicesData[0], true);
                     showDeviceCommands(devicesData[0]);
+                    showDeviceIrConfig(devicesData[0]);
                 }
                 
             } catch (error) {
@@ -1552,112 +1587,28 @@
             }
         }
 
-        function renderIrImage(canvasId, temperatures, width, height) {
-            const canvas = document.getElementById(canvasId);
-            if (!canvas) {
-                console.error(`Canvas ${canvasId} nenalezen`);
-                return;
-            }
-
-            const ctx = canvas.getContext('2d');
-            const scaleCanvas = document.getElementById('scale-canvas');
-            const scaleCtx = scaleCanvas ? scaleCanvas.getContext('2d') : null;
-
-
-            // Najít min a max teplotu
-            const minTemp = Math.min(...temperatures);
-            const maxTemp = Math.max(...temperatures);
-            const tempRange = maxTemp - minTemp || 1; // ochrana proti dělení nulou
-
-            // Aktualizovat popisky škály
-            if (document.getElementById('temp-max')) {
-                document.getElementById('temp-max').textContent = `${maxTemp.toFixed(1)}°C`;
-                document.getElementById('temp-mid').textContent = `${((maxTemp + minTemp) / 2).toFixed(1)}°C`;
-                document.getElementById('temp-min').textContent = `${minTemp.toFixed(1)}°C`;
-            }
-
-            // Funkce pro převod teploty na barvu (Iron bow paleta)
-            function tempToColor(temp) {
-                const normalized = (temp - minTemp) / tempRange;
-                
-                let r, g, b;
-                
-                if (normalized < 0.25) {
-                    // Tmavě modrá -> fialová
-                    const t = normalized / 0.25;
-                    r = Math.floor(t * 130);
-                    g = 0;
-                    b = Math.floor(130 + t * 125);
-                } else if (normalized < 0.5) {
-                    // Fialová -> červená
-                    const t = (normalized - 0.25) / 0.25;
-                    r = Math.floor(130 + t * 125);
-                    g = 0;
-                    b = Math.floor(255 - t * 255);
-                } else if (normalized < 0.75) {
-                    // Červená -> oranžová -> žlutá
-                    const t = (normalized - 0.5) / 0.25;
-                    r = 255;
-                    g = Math.floor(t * 255);
-                    b = 0;
-                } else {
-                    // Žlutá -> bílá
-                    const t = (normalized - 0.75) / 0.25;
-                    r = 255;
-                    g = 255;
-                    b = Math.floor(t * 255);
-                }
-                
-                return `rgb(${r}, ${g}, ${b})`;
-            }
-
-            // Vykreslení IR obrazu
-            const pixelWidth = canvas.width / width;
-            const pixelHeight = canvas.height / height;
-
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    const index = y * width + x;
-                    const temp = temperatures[index];
-                    
-                    ctx.fillStyle = tempToColor(temp);
-                    ctx.fillRect(
-                        x * pixelWidth,
-                        y * pixelHeight,
-                        pixelWidth,
-                        pixelHeight
-                    );
-                }
-            }
-
-            // Vykreslení barevné škály
-            if (scaleCtx) {
-                const scaleHeight = scaleCanvas.height;
-                for (let i = 0; i < scaleHeight; i++) {
-                    const temp = maxTemp - (i / scaleHeight) * tempRange;
-                    scaleCtx.fillStyle = tempToColor(temp);
-                    scaleCtx.fillRect(0, i, scaleCanvas.width, 1);
-                }
-            }
-
-            // Přidání mouse hover funkcionality
-            setupMouseHover(canvas, temperatures, width, height, pixelWidth, pixelHeight);
-        }
-
         /**
-         * Nastavení zobrazení teploty při najetí myší
+         * Nastavení zobrazení teploty při najetí myší.
+         * Listenery se registrují jen jednou, aktuální teploty se čtou z canvas._irTemps.
          */
-        function setupMouseHover(canvas, temperatures, width, height, pixelWidth, pixelHeight) {
-            const tempInfo = document.getElementById('temp-info');
-            const tempPos = document.getElementById('temp-pos');
-            const tempValue = document.getElementById('temp-value');
+        function setupMouseHover(canvas, deviceId, width, height, pixelWidth, pixelHeight) {
+            if (canvas.dataset.hoverAttached) return;
+            canvas.dataset.hoverAttached = '1';
+
+            const tempInfo = document.getElementById(`temp-info-${deviceId}`);
+            const tempPos = document.getElementById(`temp-pos-${deviceId}`);
+            const tempValue = document.getElementById(`temp-value-${deviceId}`);
 
             if (!tempInfo) return;
 
             canvas.addEventListener('mousemove', (e) => {
+                const temperatures = canvas._irTemps;
+                if (!temperatures) return;
+
                 const rect = canvas.getBoundingClientRect();
-                const x = Math.floor((e.clientX - rect.left) / pixelWidth);
-                const y = Math.floor((e.clientY - rect.top) / pixelHeight);
+                // Přepočet z CSS velikosti na pixely canvasu
+                const x = Math.floor((e.clientX - rect.left) * canvas.width / rect.width / pixelWidth);
+                const y = Math.floor((e.clientY - rect.top) * canvas.height / rect.height / pixelHeight);
 
                 if (x >= 0 && x < width && y >= 0 && y < height) {
                     const index = y * width + x;
@@ -1676,6 +1627,432 @@
             canvas.addEventListener('mouseleave', () => {
                 tempInfo.style.display = 'none';
             });
+        }
+
+        // ==================== RoomIR detection settings ====================
+
+        const ZONE_COLORS = ['#00e5ff', '#76ff03', '#ffea00', '#ff4081'];
+        const IR_GRID_W = 32, IR_GRID_H = 24;
+        let currentIrConfig = null;      // konfigurace vybraného RoomIR zařízení
+        let irConfigDeviceId = null;     // id zařízení, ke kterému currentIrConfig patří
+        let drawingZoneIndex = -1;       // index zóny, která se právě kreslí myší (tlačítko Draw)
+        let zoneDrag = null;             // probíhající tažení: {mode:'create'|'move'|'resize', zoneIndex, startCell, orig, edges}
+        let zoneDrawPreview = null;      // {x,y,w,h} náhled během kreslení nové zóny
+
+        async function showDeviceIrConfig(device) {
+            const container = document.getElementById('deviceIrConfigContainer');
+
+            if (device.type !== 'RoomIR') {
+                container.innerHTML = '';
+                currentIrConfig = null;
+                irConfigDeviceId = null;
+                drawingZoneIndex = -1;
+                return;
+            }
+
+            // Stejné zařízení už zobrazeno - nepřenačítej (neztrácej rozeditovaný formulář)
+            if (irConfigDeviceId === device.id && currentIrConfig) return;
+
+            try {
+                const res = await fetch(`api/device/ir-config?device=${encodeURIComponent(device.id)}`);
+                if (!res.ok) return;
+                currentIrConfig = await res.json();
+                irConfigDeviceId = device.id;
+                drawingZoneIndex = -1;
+                renderIrConfigCard(container);
+            } catch (error) {
+                // Tiše ignoruj chyby
+            }
+        }
+
+        function renderIrConfigCard(container) {
+            const cfg = currentIrConfig;
+
+            let html = `
+                <div class="device-info-card">
+                    <h3>🎯 IR Detection Settings</h3>
+                    <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+                        <div class="form-group">
+                            <label>Fire threshold (°C):</label>
+                            <input type="number" id="irFireThreshold" step="1" value="${cfg.fireThreshold}">
+                        </div>
+                        <div class="form-group">
+                            <label>Person min temp (°C):</label>
+                            <input type="number" id="irPersonMin" step="0.5" value="${cfg.personMinTemp}">
+                        </div>
+                        <div class="form-group">
+                            <label>Person max temp (°C):</label>
+                            <input type="number" id="irPersonMax" step="0.5" value="${cfg.personMaxTemp}">
+                        </div>
+                        <div class="form-group">
+                            <label>Min cluster size (px):</label>
+                            <input type="number" id="irMinCluster" step="1" min="1" value="${cfg.minClusterSize}">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0;">
+                        <strong>Presence zones (max 4)</strong>
+                        <button class="send-btn" onclick="addIrZone()" ${cfg.zones.length >= 4 ? 'disabled' : ''}>+ Add Zone</button>
+                    </div>
+                    <div id="irZoneDrawHint" style="display:none; padding: 8px 12px; background: #fff3cd; border-radius: 4px; margin-bottom: 10px; font-size: 13px;">
+                        ✏️ Táhni myší v IR obraze výše a vyber oblast zóny. (Esc = zrušit)
+                    </div>
+                    <div style="padding: 6px 12px; color: #888; font-size: 12px; margin-bottom: 8px;">
+                        💡 Zóny lze upravovat přímo v IR obraze: tažením středu posunout, tažením hrany/rohu změnit velikost.
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th></th><th>Name</th><th>X</th><th>Y</th><th>W</th><th>H</th><th>Enabled</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody id="irZonesTbody"></tbody>
+                    </table>
+
+                    <div style="margin-top: 15px; text-align: right;">
+                        <button class="send-btn" style="background-color: #27ae60;" onclick="saveIrConfig()">💾 Save IR Settings</button>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+            renderIrZonesTable();
+        }
+
+        function renderIrZonesTable() {
+            const tbody = document.getElementById('irZonesTbody');
+            if (!tbody) return;
+
+            let html = '';
+            currentIrConfig.zones.forEach((zone, i) => {
+                html += `
+                    <tr>
+                        <td><span style="display:inline-block; width:14px; height:14px; border-radius:3px; background:${ZONE_COLORS[i]};"></span></td>
+                        <td><input type="text" class="command-input" id="irZoneName${i}" value="${zone.name || ''}" placeholder="zone${i}"></td>
+                        <td><input type="number" class="command-input" style="width:60px;" id="irZoneX${i}" min="0" max="31" value="${zone.x}" onchange="updateZoneFromInputs(${i})"></td>
+                        <td><input type="number" class="command-input" style="width:60px;" id="irZoneY${i}" min="0" max="23" value="${zone.y}" onchange="updateZoneFromInputs(${i})"></td>
+                        <td><input type="number" class="command-input" style="width:60px;" id="irZoneW${i}" min="1" max="32" value="${zone.w}" onchange="updateZoneFromInputs(${i})"></td>
+                        <td><input type="number" class="command-input" style="width:60px;" id="irZoneH${i}" min="1" max="24" value="${zone.h}" onchange="updateZoneFromInputs(${i})"></td>
+                        <td style="text-align:center;"><input type="checkbox" id="irZoneEn${i}" ${zone.enabled ? 'checked' : ''} onchange="updateZoneFromInputs(${i})"></td>
+                        <td>
+                            <button class="edit-btn" onclick="startZoneDraw(${i})">✏️ Draw</button>
+                            <button class="delete-btn" onclick="deleteIrZone(${i})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html || '<tr><td colspan="8" style="text-align:center; color:#999;">No zones defined</td></tr>';
+        }
+
+        function addIrZone() {
+            if (!currentIrConfig || currentIrConfig.zones.length >= 4) return;
+            collectIrZonesFromInputs();
+            const i = currentIrConfig.zones.length;
+            currentIrConfig.zones.push({ name: 'zone' + i, x: 0, y: 0, w: 8, h: 8, enabled: true });
+            renderIrConfigCard(document.getElementById('deviceIrConfigContainer'));
+            startZoneDraw(i);
+            redrawIrCanvasForCurrent();
+        }
+
+        function deleteIrZone(index) {
+            collectIrZonesFromInputs();
+            currentIrConfig.zones.splice(index, 1);
+            drawingZoneIndex = -1;
+            renderIrConfigCard(document.getElementById('deviceIrConfigContainer'));
+            redrawIrCanvasForCurrent();
+        }
+
+        function updateZoneFromInputs(index) {
+            collectIrZonesFromInputs();
+            redrawIrCanvasForCurrent();
+        }
+
+        // Překreslí IR canvas aktuálně zobrazeného RoomIR zařízení (podklad + zóny)
+        function redrawIrCanvasForCurrent() {
+            if (!irConfigDeviceId) return;
+            const canvas = document.getElementById(`ir-canvas-${irConfigDeviceId}`);
+            if (canvas) redrawIrCanvas(canvas, irConfigDeviceId);
+        }
+
+        function redrawIrCanvas(canvas, deviceId) {
+            if (!canvas._irColors) return;
+            const ctx = canvas.getContext('2d');
+            const pw = canvas.width / IR_GRID_W;
+            const ph = canvas.height / IR_GRID_H;
+            for (let y = 0; y < IR_GRID_H; y++) {
+                for (let x = 0; x < IR_GRID_W; x++) {
+                    ctx.fillStyle = canvas._irColors[y * IR_GRID_W + x];
+                    ctx.fillRect(x * pw, y * ph, pw, ph);
+                }
+            }
+            drawZoneOverlays(canvas, deviceId, pw, ph);
+        }
+
+        function collectIrZonesFromInputs() {
+            if (!currentIrConfig) return;
+            currentIrConfig.zones.forEach((zone, i) => {
+                const nameEl = document.getElementById(`irZoneName${i}`);
+                if (!nameEl) return;
+                zone.name = nameEl.value;
+                zone.x = clampInt(document.getElementById(`irZoneX${i}`).value, 0, 31);
+                zone.y = clampInt(document.getElementById(`irZoneY${i}`).value, 0, 23);
+                zone.w = clampInt(document.getElementById(`irZoneW${i}`).value, 1, 32 - zone.x);
+                zone.h = clampInt(document.getElementById(`irZoneH${i}`).value, 1, 24 - zone.y);
+                zone.enabled = document.getElementById(`irZoneEn${i}`).checked;
+            });
+        }
+
+        function clampInt(value, min, max) {
+            const v = parseInt(value) || 0;
+            return Math.max(min, Math.min(max, v));
+        }
+
+        function startZoneDraw(index) {
+            collectIrZonesFromInputs();
+            drawingZoneIndex = index;
+            const hint = document.getElementById('irZoneDrawHint');
+            if (hint) hint.style.display = 'block';
+        }
+
+        function cancelZoneDraw() {
+            drawingZoneIndex = -1;
+            zoneDrag = null;
+            zoneDrawPreview = null;
+            const hint = document.getElementById('irZoneDrawHint');
+            if (hint) hint.style.display = 'none';
+            redrawIrCanvasForCurrent();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') cancelZoneDraw();
+        });
+
+        function attachZoneDrawHandlers(canvasId, deviceId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || canvas.dataset.zoneDrawAttached) return;
+            canvas.dataset.zoneDrawAttached = '1';
+
+            // Pozice myši v pixelech canvasu (přepočet z CSS velikosti)
+            const canvasPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    px: (e.clientX - rect.left) * canvas.width / rect.width,
+                    py: (e.clientY - rect.top) * canvas.height / rect.height
+                };
+            };
+
+            const cellOf = (e) => {
+                const p = canvasPos(e);
+                return {
+                    x: clampInt(Math.floor(p.px / (canvas.width / IR_GRID_W)), 0, IR_GRID_W - 1),
+                    y: clampInt(Math.floor(p.py / (canvas.height / IR_GRID_H)), 0, IR_GRID_H - 1)
+                };
+            };
+
+            // Najde zónu a její hranu/roh pod kurzorem (pro move/resize)
+            const hitTest = (e) => {
+                if (!currentIrConfig || irConfigDeviceId !== deviceId) return null;
+                const p = canvasPos(e);
+                const pw = canvas.width / IR_GRID_W, ph = canvas.height / IR_GRID_H;
+                const margin = 6; // tolerance chycení hrany v px canvasu
+
+                for (let i = currentIrConfig.zones.length - 1; i >= 0; i--) {
+                    const z = currentIrConfig.zones[i];
+                    const left = z.x * pw, top = z.y * ph;
+                    const right = (z.x + z.w) * pw, bottom = (z.y + z.h) * ph;
+                    if (p.px < left - margin || p.px > right + margin ||
+                        p.py < top - margin || p.py > bottom + margin) continue;
+
+                    const edges = {
+                        left: Math.abs(p.px - left) <= margin,
+                        right: Math.abs(p.px - right) <= margin,
+                        top: Math.abs(p.py - top) <= margin,
+                        bottom: Math.abs(p.py - bottom) <= margin
+                    };
+                    if (edges.left || edges.right || edges.top || edges.bottom) {
+                        return { mode: 'resize', zoneIndex: i, edges };
+                    }
+                    if (p.px > left && p.px < right && p.py > top && p.py < bottom) {
+                        return { mode: 'move', zoneIndex: i };
+                    }
+                }
+                return null;
+            };
+
+            const cursorFor = (hit) => {
+                if (!hit) return 'crosshair';
+                if (hit.mode === 'move') return 'move';
+                const ed = hit.edges;
+                if ((ed.left && ed.top) || (ed.right && ed.bottom)) return 'nwse-resize';
+                if ((ed.right && ed.top) || (ed.left && ed.bottom)) return 'nesw-resize';
+                if (ed.left || ed.right) return 'ew-resize';
+                return 'ns-resize';
+            };
+
+            canvas.addEventListener('mousedown', (e) => {
+                if (irConfigDeviceId !== deviceId || !currentIrConfig) return;
+                const cell = cellOf(e);
+
+                if (drawingZoneIndex >= 0) {
+                    // Kreslení nové zóny (tlačítko Draw)
+                    zoneDrag = { mode: 'create', zoneIndex: drawingZoneIndex, startCell: cell };
+                    zoneDrawPreview = { x: cell.x, y: cell.y, w: 1, h: 1 };
+                } else {
+                    const hit = hitTest(e);
+                    if (!hit) return;
+                    collectIrZonesFromInputs(); // neztratit rozeditovaná jména zón
+                    const z = currentIrConfig.zones[hit.zoneIndex];
+                    zoneDrag = { ...hit, startCell: cell, orig: { x: z.x, y: z.y, w: z.w, h: z.h } };
+                }
+                e.preventDefault();
+                redrawIrCanvas(canvas, deviceId);
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!zoneDrag) {
+                    // Kurzor podle toho, co je pod myší
+                    canvas.style.cursor = drawingZoneIndex >= 0 ? 'crosshair' : cursorFor(hitTest(e));
+                    return;
+                }
+
+                const cell = cellOf(e);
+
+                if (zoneDrag.mode === 'create') {
+                    zoneDrawPreview = {
+                        x: Math.min(zoneDrag.startCell.x, cell.x),
+                        y: Math.min(zoneDrag.startCell.y, cell.y),
+                        w: Math.abs(cell.x - zoneDrag.startCell.x) + 1,
+                        h: Math.abs(cell.y - zoneDrag.startCell.y) + 1
+                    };
+                } else {
+                    const z = currentIrConfig.zones[zoneDrag.zoneIndex];
+                    const o = zoneDrag.orig;
+                    const dx = cell.x - zoneDrag.startCell.x;
+                    const dy = cell.y - zoneDrag.startCell.y;
+
+                    if (zoneDrag.mode === 'move') {
+                        z.x = clampInt(o.x + dx, 0, IR_GRID_W - o.w);
+                        z.y = clampInt(o.y + dy, 0, IR_GRID_H - o.h);
+                    } else {
+                        let left = o.x, right = o.x + o.w, top = o.y, bottom = o.y + o.h;
+                        if (zoneDrag.edges.left)   left = clampInt(o.x + dx, 0, right - 1);
+                        if (zoneDrag.edges.right)  right = clampInt(o.x + o.w + dx, left + 1, IR_GRID_W);
+                        if (zoneDrag.edges.top)    top = clampInt(o.y + dy, 0, bottom - 1);
+                        if (zoneDrag.edges.bottom) bottom = clampInt(o.y + o.h + dy, top + 1, IR_GRID_H);
+                        z.x = left; z.w = right - left;
+                        z.y = top;  z.h = bottom - top;
+                    }
+                }
+                redrawIrCanvas(canvas, deviceId);
+            });
+
+            const finishDrag = () => {
+                if (!zoneDrag) return;
+                if (zoneDrag.mode === 'create' && zoneDrawPreview) {
+                    const zone = currentIrConfig.zones[zoneDrag.zoneIndex];
+                    if (zone) {
+                        zone.x = zoneDrawPreview.x;
+                        zone.y = zoneDrawPreview.y;
+                        zone.w = zoneDrawPreview.w;
+                        zone.h = zoneDrawPreview.h;
+                    }
+                    cancelZoneDraw(); // vypne režim kreslení + smaže náhled
+                }
+                zoneDrag = null;
+                zoneDrawPreview = null;
+                renderIrZonesTable(); // promítni novou pozici/velikost do formuláře
+                redrawIrCanvas(canvas, deviceId);
+            };
+
+            canvas.addEventListener('mouseup', finishDrag);
+            // Ukončení tažení i při puštění tlačítka mimo canvas
+            window.addEventListener('mouseup', finishDrag);
+        }
+
+        // Text s tmavým obrysem, aby byl čitelný na jakémkoli podkladu
+        function drawOutlinedText(ctx, text, x, y) {
+            ctx.font = 'bold 12px sans-serif';
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+            ctx.strokeText(text, x, y);
+            ctx.fillText(text, x, y);
+        }
+
+        function drawZoneOverlays(canvas, deviceId, pixelWidth, pixelHeight) {
+            if (irConfigDeviceId !== deviceId || !currentIrConfig) return;
+            const ctx = canvas.getContext('2d');
+
+            currentIrConfig.zones.forEach((zone, i) => {
+                ctx.save();
+                if (!zone.enabled) {
+                    ctx.globalAlpha = 0.35;
+                    ctx.setLineDash([4, 3]);
+                }
+                const zx = zone.x * pixelWidth, zy = zone.y * pixelHeight;
+                const zw = zone.w * pixelWidth, zh = zone.h * pixelHeight;
+
+                // Poloprůhledná výplň, ať je zóna vidět i přes barevný IR podklad
+                ctx.fillStyle = ZONE_COLORS[i] + '26'; // ~15% alpha
+                ctx.fillRect(zx, zy, zw, zh);
+                ctx.strokeStyle = ZONE_COLORS[i];
+                ctx.lineWidth = 2;
+                ctx.strokeRect(zx + 1, zy + 1, zw - 2, zh - 2);
+
+                ctx.fillStyle = ZONE_COLORS[i];
+                let label = zone.name || ('zone' + i);
+                // Během posunu/resize zobraz živě pozici a rozměr
+                if (zoneDrag && zoneDrag.mode !== 'create' && zoneDrag.zoneIndex === i) {
+                    label += `  ${zone.x},${zone.y} ${zone.w}×${zone.h}`;
+                }
+                drawOutlinedText(ctx, label, zx + 4, zy + 14);
+                ctx.restore();
+            });
+
+            // Náhled právě kreslené zóny včetně rozměru
+            if (zoneDrawPreview && drawingZoneIndex >= 0) {
+                const px = zoneDrawPreview.x * pixelWidth, py = zoneDrawPreview.y * pixelHeight;
+                const pw = zoneDrawPreview.w * pixelWidth, ph = zoneDrawPreview.h * pixelHeight;
+                ctx.save();
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                ctx.fillRect(px, py, pw, ph);
+                ctx.strokeStyle = '#ffffff';
+                ctx.setLineDash([5, 3]);
+                ctx.lineWidth = 2;
+                ctx.strokeRect(px, py, pw, ph);
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#ffffff';
+                drawOutlinedText(ctx, `${zoneDrawPreview.x},${zoneDrawPreview.y} ${zoneDrawPreview.w}×${zoneDrawPreview.h}`,
+                                 px + 4, py + ph - 6);
+                ctx.restore();
+            }
+        }
+
+        async function saveIrConfig() {
+            if (!currentIrConfig || !irConfigDeviceId) return;
+
+            collectIrZonesFromInputs();
+            currentIrConfig.fireThreshold = parseFloat(document.getElementById('irFireThreshold').value) || 100;
+            currentIrConfig.personMinTemp = parseFloat(document.getElementById('irPersonMin').value) || 26;
+            currentIrConfig.personMaxTemp = parseFloat(document.getElementById('irPersonMax').value) || 38;
+            currentIrConfig.minClusterSize = clampInt(document.getElementById('irMinCluster').value, 1, 768);
+
+            try {
+                const res = await fetch('api/device/ir-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        device: irConfigDeviceId,
+                        ...currentIrConfig
+                    })
+                });
+
+                if (res.ok) {
+                    alert('IR detection settings saved!');
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    alert('Error saving IR settings: ' + (err.message || res.status));
+                }
+            } catch (error) {
+                alert('Error saving IR settings!');
+            }
         }
 
 

@@ -56,8 +56,16 @@ public class SerialUpdater {
 
     boolean readSerialMessages = false;
     Semaphore semaphoreWaitForResponse;
+    volatile String lastResponse = null; // last resp:xxx received from the bootloader
     String connection;
     String deviceName;
+
+    static final int MAX_ATTEMPTS = 3;
+
+    // application flash window - data outside it (config words, user ID,
+    // EEPROM image) cannot be written by the bootloader and is skipped
+    static final long APP_FLASH_START = 0x6000;
+    static final long APP_FLASH_END   = 0x200000;
 
     // output for UI
     int progress = 0; //%
@@ -108,13 +116,14 @@ public class SerialUpdater {
         String recvDeviceName = (String) msgData.get("id");
         String recvType       = (String) msgData.get("msg");
         String recvStatus     = (String) msgData.get("resp");
-        
+
         if (recvDeviceName == null || recvType == null || recvStatus == null) {
             return;
         }
-        
 
-        if (recvDeviceName.equals(deviceName) && recvType.equals("bl") && recvStatus.equals("dataOK")) {
+        // any bootloader response from the updated device (erasedOk/dataOK/dataError)
+        if (recvDeviceName.equals(deviceName) && recvType.equals("bl")) {
+            lastResponse = recvStatus;
             semaphoreWaitForResponse.release();
         }
 
@@ -189,6 +198,11 @@ public class SerialUpdater {
             switch (type) {
                 // DATA
                 case 0:
+
+                    if (wholeAddress < APP_FLASH_START || wholeAddress >= APP_FLASH_END) {
+                        System.out.println("BL - skipping data outside application flash: 0x" + Long.toHexString(wholeAddress));
+                        break;
+                    }
 
                     int processedSize = 0;
                     long mapIndex = wholeAddress / memoryBlockSize;
@@ -288,79 +302,98 @@ public class SerialUpdater {
         return crc & 0xFF;
     }
 
-    private void sendFileOverSerial(String connection, String deviceName) {
+    /**
+     * Send one protocol message with CRC appended, without waiting for a response.
+     */
+    private void sendMsg(String connection, String msgBody) {
+        String msg = msgBody;
+        char crc = SerialCom.SerialCommunication.getInstance().crc8(0, msg.toCharArray(), msg.length());
+        msg += String.format(",crc:%02x\r\n", (int) crc);
+        System.out.println(java.time.LocalDateTime.now() + ":" + msg);
+        SerialCommunication.getInstance().sendAsyncMsg(connection, msg);
+    }
 
-        String msg;
+    /**
+     * Send one protocol message (CRC gets appended) and wait for a bootloader
+     * response. Returns true when the expected response arrived in time.
+     */
+    private boolean sendAndWaitForResponse(String connection, String msgBody, String expectedResp, int timeoutMs) throws InterruptedException {
+        String msg = msgBody;
+        char crc = SerialCom.SerialCommunication.getInstance().crc8(0, msg.toCharArray(), msg.length());
+        msg += String.format(",crc:%02x\r\n", (int) crc);
+
+        // drop stale permits/responses so we only see the answer to this message
+        semaphoreWaitForResponse.drainPermits();
+        lastResponse = null;
+
+        System.out.println(java.time.LocalDateTime.now() + ":" + msg);
+        SerialCommunication.getInstance().sendAsyncMsg(connection, msg);
+
+        if (!semaphoreWaitForResponse.tryAcquire(timeoutMs, TimeUnit.MILLISECONDS)) {
+            return false;
+        }
+        return expectedResp.equals(lastResponse);
+    }
+
+    private void sendFileOverSerial(String connection, String deviceName) {
 
         try {
             Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-            return;
-        }
 
-        msg = "id:" + deviceName + ",msg:config,cmd:reset";
-        char crc = SerialCom.SerialCommunication.getInstance().crc8(0, msg.toCharArray(), msg.length());
-        msg += String.format(",crc:%02x\r\n", (int) crc);
-        System.out.println(msg);
-        SerialCommunication.getInstance().sendAsyncMsg(connection, msg);
+            // 1) reset device (bootloader sends no response after restart),
+            //    then erase confirmed by erasedOk - that is the gate before
+            //    any data is sent. On failure retry the whole reset+erase,
+            //    then give up.
+            boolean erased = false;
+            for (int attempt = 1; attempt <= MAX_ATTEMPTS && !erased; attempt++) {
+                sendMsg(connection, "id:" + deviceName + ",msg:config,cmd:reset");
+                Thread.sleep(1000); // reboot into the bootloader
 
-        try {
-            Thread.sleep(2500);
-        } catch (InterruptedException ex) {
-            return;
-        }
-
-        msg = "id:" + deviceName + ",msg:bl,cmd:erase";
-        crc = SerialCom.SerialCommunication.getInstance().crc8(0, msg.toCharArray(), msg.length());
-        msg += String.format(",crc:%02x\r\n", (int) crc);
-        System.out.println(msg);
-        SerialCommunication.getInstance().sendAsyncMsg(connection, msg);
-
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException ex) {
-            return;
-        }
-
-        double counter = 0;
-        for (long address : memoryBlocks.keySet()) {
-            try {
-                byte[] ba = memoryBlocks.get(address);
-
-                msg = "id:" + deviceName + ",msg:bl,addr:" + address + ",data:" + Base64.getEncoder().encodeToString(ba);
-                crc = SerialCom.SerialCommunication.getInstance().crc8(0, msg.toCharArray(), msg.length());
-                msg += String.format(",crc:%02x\r\n", (int) crc);
-                System.out.println(java.time.LocalDateTime.now() + ":" + msg);
-                SerialCommunication.getInstance().sendAsyncMsg(connection, msg);
-
-                // wait for response
-                if (!semaphoreWaitForResponse.tryAcquire(150, TimeUnit.MILLISECONDS)) {
-                    System.out.println("BL - No response from device!");
+                erased = sendAndWaitForResponse(connection, "id:" + deviceName + ",msg:bl,cmd:erase", "erasedOk", 8000);
+                if (!erased) {
+                    System.out.println("BL - no bootloader response after reset+erase (attempt " + attempt + "/" + MAX_ATTEMPTS + ")");
                 }
+            }
+            if (!erased) {
+                System.out.println("BL - device not responding, update aborted");
+                error = 1;
+                return;
+            }
 
-                try {
-                    Thread.sleep(40);
-                } catch (InterruptedException ex) {
+            // 3) data blocks - each must be confirmed by dataOK, on timeout
+            //    or dataError (bad CRC) the block is resent, then give up
+            double counter = 0;
+            for (long address : memoryBlocks.keySet()) {
+                byte[] ba = memoryBlocks.get(address);
+                String msgBody = "id:" + deviceName + ",msg:bl,addr:" + address + ",data:" + Base64.getEncoder().encodeToString(ba);
+
+                boolean blockOk = false;
+                for (int attempt = 1; attempt <= MAX_ATTEMPTS && !blockOk; attempt++) {
+                    blockOk = sendAndWaitForResponse(connection, msgBody, "dataOK", 250);
+                    if (!blockOk) {
+                        System.out.println("BL - block " + address + " not confirmed, resp:" + lastResponse + " (attempt " + attempt + "/" + MAX_ATTEMPTS + ")");
+                    }
+                }
+                if (!blockOk) {
+                    System.out.println("BL - block " + address + " failed, update aborted");
+                    error = 1;
                     return;
                 }
 
                 progress = (int) ((counter * 100) / (double) memoryBlocks.size()); //%
                 counter++;
-            } catch (InterruptedException ex) {
-                System.getLogger(SerialUpdater.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
             }
 
-        }
-        msg = "id:" + deviceName + ",msg:bl,cmd:jumpToApp";
-        crc = SerialCom.SerialCommunication.getInstance().crc8(0, msg.toCharArray(), msg.length());
-        msg += String.format(",crc:%02x\r\n", (int) crc);
-        System.out.println(msg);
-        SerialCommunication.getInstance().sendAsyncMsg(connection, msg);
+            // 4) start the application
+            sendMsg(connection, "id:" + deviceName + ",msg:bl,cmd:jumpToApp");
 
-        //P120_UpdateController.getInstance().setUpdateProgessBar(100);
-        progress = 100;
-        done = 1;
-        error = 0;
+            progress = 100;
+            done = 1;
+            error = 0;
+
+        } catch (InterruptedException ex) {
+            System.out.println("BL - update interrupted");
+        }
 
     }
 }

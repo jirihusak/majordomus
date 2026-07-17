@@ -47,12 +47,12 @@ public class RoomSens extends DeviceGeneric {
         super(connectionName, name, type);
 
         cmdList.addAll(Arrays.asList("dac0", "dac1", "do0", "do1", "do2", "do3",
-                "beep", "reqT", "light", "reboot"));
+                "beep", "reqT", "reqL", "light", "reboot"));
         infList.addAll(Arrays.asList("version", "pwr", "pwrOut",
                 "t0", "t1", "t2", "t3", "rh", "at", "voc", "mo", "co2", "lux", "nox", "nl",
                 "di0", "di1", "di2", "di3", "adc0", "adc1",
                 "dac0", "dac1", "do0", "do1", "do2", "do3",
-                "beep", "reqT", "light", "lastMo"));
+                "beep", "reqT", "reqL", "light", "lastMo"));
         for (String s : cmdList) {
             propertyMap.put(s, new DeviceProperty());
         }
@@ -127,6 +127,7 @@ public class RoomSens extends DeviceGeneric {
                 case "pwr"     -> infFromDevice("state", "power",      key, Float.parseFloat(data), true);
                 case "pwrOut"  -> infFromDevice("state", "powerOut",   key, Float.parseFloat(data), true);
                 case "newReqT" -> infFromDevice("state", "requestedTemperature", key, Float.parseFloat(data), true);
+                case "newReqL" -> infFromDevice("state", "requestedLight",       key, Integer.parseInt(data),  true);
             }
         } catch (NumberFormatException e) {
             // ignore malformed values
@@ -165,7 +166,8 @@ public class RoomSens extends DeviceGeneric {
             msg += "dac0:" + getDataByKey("dac0")   + ",";
             msg += "dac1:" + getDataByKey("dac1")   + ",";
             msg += "light:"+ getDataByKey("light")  + ",";
-            msg += "reqT:" + getDataByKey("reqT");
+            msg += "reqT:" + getDataByKey("reqT")   + ",";
+            msg += "reqL:" + getDataByKey("reqL");
 
             if (!getDataByKey("beep").equals("0")) {
                 msg += ",beep:" + getDataByKey("beep");
@@ -194,6 +196,7 @@ public class RoomSens extends DeviceGeneric {
             case "dac1"   -> infFromDevice("state", "dac1",                 key, Float.valueOf(value),   true);
             case "beep"   -> infFromDevice("state", "beep",                 key, Integer.valueOf(value), false);
             case "reqT"   -> infFromDevice("state", "requestedTemperature", key, Float.valueOf(value),   true);
+            case "reqL"   -> infFromDevice("state", "requestedLight",       key, Integer.valueOf(value), true);
             case "light"  -> infFromDevice("state", "light",                key, Integer.valueOf(value), true);
         }
     }
@@ -441,6 +444,23 @@ public class RoomSens extends DeviceGeneric {
             c.put("min",  10.0);
             c.put("max",  35.0);
             c.put("step", 0.5);
+            addAvailability(c, avail);
+            c.set("device", device);
+            publishHAConfig(mapper, topic + "number/" + id + "/config", c);
+        }
+
+        // Requested light level (number 0–100 %)
+        {
+            ObjectNode c = mapper.createObjectNode();
+            String id = getName() + "_reqL";
+            c.put("name",               "requestedLight");
+            c.put("unique_id",          id);
+            c.put("state_topic",        base + "state/requestedLight");
+            c.put("command_topic",      base + "cmd/reqL");
+            c.put("unit_of_measurement","%");
+            c.put("min",  0.0);
+            c.put("max",  100.0);
+            c.put("step", 1.0);
             addAvailability(c, avail);
             c.set("device", device);
             publishHAConfig(mapper, topic + "number/" + id + "/config", c);

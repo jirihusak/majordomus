@@ -64,16 +64,19 @@ public class WebInterface {
             config.staticFiles.add("/Web", Location.CLASSPATH);
         }).start("0.0.0.0", 8899);
 
-        // Serve index.html directly — redirect breaks HA ingress proxy.
-        // Read the resource fully here: Javalin writes the result after the
-        // handler returns, so the stream must not be closed inside the handler.
+        // Serve index.html directly — redirect breaks HA ingress proxy
+        // Note: the stream must be fully read inside the handler; Javalin writes
+        // the response after the handler returns, so a try-with-resources
+        // InputStream result would already be closed -> HTTP 500.
         app.get("/", ctx -> {
             try (var stream = WebInterface.class.getResourceAsStream("/Web/index.html")) {
+                ctx.header("Cache-Control", "no-cache, must-revalidate");
                 ctx.contentType("text/html").result(stream.readAllBytes());
             }
         });
         app.get("/index.html", ctx -> {
             try (var stream = WebInterface.class.getResourceAsStream("/Web/index.html")) {
+                ctx.header("Cache-Control", "no-cache, must-revalidate");
                 ctx.contentType("text/html").result(stream.readAllBytes());
             }
         });
@@ -278,6 +281,16 @@ public class WebInterface {
                         device.name = devData.get("name");
                         device.connection = devData.get("connection");
                         device.type = devData.get("type");
+
+                        // Preserve per-device IR settings (edited on the device page,
+                        // not part of the settings form payload)
+                        for (ConfXmlObject.Device oldDev : xmlObj.getDevices()) {
+                            if (oldDev.name != null && oldDev.name.equals(device.name)) {
+                                device.irConfig = oldDev.irConfig;
+                                break;
+                            }
+                        }
+
                         devList.add(device);
                     }
 
@@ -303,6 +316,107 @@ public class WebInterface {
                 e.printStackTrace();
                 ctx.status(500);
                 ctx.json(Map.of("success", false, "message", "Error saving configuration: " + e.getMessage()));
+            }
+        });
+
+        // ===== RoomIR image processing configuration =====
+        app.get("/api/device/ir-config", ctx -> {
+            String deviceName = ctx.queryParam("device");
+            if (deviceName == null || deviceName.isEmpty()) {
+                ctx.status(400).json(Map.of("error", "Missing 'device' parameter"));
+                return;
+            }
+
+            ConfXmlObject.IRConfig irConfig = null;
+            for (ConfXmlObject.Device dev : Configuration.getXMLObj().getDevices()) {
+                if (deviceName.equals(dev.name)) {
+                    irConfig = dev.irConfig;
+                    break;
+                }
+            }
+            if (irConfig == null) {
+                irConfig = new ConfXmlObject.IRConfig(); // defaults
+            }
+
+            List<Map<String, Object>> zones = new ArrayList<>();
+            for (ConfXmlObject.IRZone z : irConfig.zones) {
+                Map<String, Object> zone = new HashMap<>();
+                zone.put("name", z.name != null ? z.name : "");
+                zone.put("x", z.x);
+                zone.put("y", z.y);
+                zone.put("w", z.w);
+                zone.put("h", z.h);
+                zone.put("enabled", z.enabled);
+                zones.add(zone);
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("fireThreshold", irConfig.fireThreshold);
+            response.put("personMinTemp", irConfig.personMinTemp);
+            response.put("personMaxTemp", irConfig.personMaxTemp);
+            response.put("minClusterSize", irConfig.minClusterSize);
+            response.put("zones", zones);
+            ctx.json(response);
+        });
+
+        app.post("/api/device/ir-config", ctx -> {
+            try {
+                Map<String, Object> body = ctx.bodyAsClass(Map.class);
+                String deviceName = (String) body.get("device");
+
+                ConfXmlObject.Device xmlDevice = null;
+                for (ConfXmlObject.Device dev : Configuration.getXMLObj().getDevices()) {
+                    if (dev.name != null && dev.name.equals(deviceName)) {
+                        xmlDevice = dev;
+                        break;
+                    }
+                }
+                if (xmlDevice == null) {
+                    ctx.status(400).json(Map.of("error", "Device not found in configuration"));
+                    return;
+                }
+
+                ConfXmlObject.IRConfig irConfig = new ConfXmlObject.IRConfig();
+                irConfig.fireThreshold  = ((Number) body.get("fireThreshold")).floatValue();
+                irConfig.personMinTemp  = ((Number) body.get("personMinTemp")).floatValue();
+                irConfig.personMaxTemp  = ((Number) body.get("personMaxTemp")).floatValue();
+                irConfig.minClusterSize = ((Number) body.get("minClusterSize")).intValue();
+
+                List<Map<String, Object>> zonesData = (List<Map<String, Object>>) body.get("zones");
+                if (zonesData != null) {
+                    for (Map<String, Object> zoneData : zonesData) {
+                        if (irConfig.zones.size() >= 4) break;
+                        ConfXmlObject.IRZone zone = new ConfXmlObject.IRZone();
+                        zone.name    = (String) zoneData.getOrDefault("name", "");
+                        zone.x       = ((Number) zoneData.get("x")).intValue();
+                        zone.y       = ((Number) zoneData.get("y")).intValue();
+                        zone.w       = ((Number) zoneData.get("w")).intValue();
+                        zone.h       = ((Number) zoneData.get("h")).intValue();
+                        zone.enabled = !Boolean.FALSE.equals(zoneData.get("enabled"));
+                        irConfig.zones.add(zone);
+                    }
+                }
+
+                xmlDevice.irConfig = irConfig;
+                Configuration.getInstance().saveToFile();
+
+                // Apply to the running device instance and refresh HA discovery
+                DeviceGeneric device = DeviceInterface.getInstance().getDeviceByName(deviceName);
+                if (device instanceof Devices.RoomIR roomIr) {
+                    roomIr.applyIrConfig();
+                    if (!Configuration.getXMLObj().getHASettings().isEmpty()
+                            && Configuration.getXMLObj().getHASettings().get(0).enable) {
+                        roomIr.publishHomeAssistentConfig(
+                                Configuration.getXMLObj().getHASettings().get(0).topic);
+                    }
+                }
+
+                ctx.status(200).json(Map.of("success", true, "message", "IR configuration saved"));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                ctx.status(500).json(Map.of("success", false,
+                        "message", "Error saving IR configuration: " + e.getMessage()));
             }
         });
 

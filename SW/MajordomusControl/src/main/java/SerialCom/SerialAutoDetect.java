@@ -71,6 +71,13 @@ public class SerialAutoDetect {
         // Stop all active connections so their ports can be re-opened for scanning
         sc.stopAllConnections();
 
+        // Give the OS a moment to release the closed port handles (mainly Windows)
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
         List<ScanResult> results = new ArrayList<>();
         boolean isLinux = System.getProperty("os.name").toLowerCase().contains("linux");
 
@@ -104,8 +111,24 @@ public class SerialAutoDetect {
         SerialPort port = SerialPort.getCommPort(portName);
         port.setBaudRate(BAUD_RATE);
 
-        if (!port.openPort()) {
-            System.out.println("AutoDetect: cannot open " + portName + " - skipped");
+        // Retry a few times - Windows releases a just-closed port handle with a delay
+        boolean opened = false;
+        for (int attempt = 1; attempt <= 5 && !opened; attempt++) {
+            opened = port.openPort();
+            if (!opened && attempt < 5) {
+                System.out.println("AutoDetect: " + portName + " busy, retry " + attempt + "/5");
+                try {
+                    Thread.sleep(400);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return Collections.emptyList();
+                }
+            }
+        }
+        if (!opened) {
+            System.out.println("AutoDetect: cannot open " + portName + " - skipped"
+                    + " (jSerialComm error " + port.getLastErrorCode()
+                    + " at line " + port.getLastErrorLocation() + ")");
             return Collections.emptyList();
         }
 

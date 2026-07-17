@@ -69,7 +69,7 @@ public class MQTTinterface extends Thread {
     private class MqttData {
 
         String topic;
-        String data;
+        byte[] data;
         int qos;
         boolean retain;
     }
@@ -151,7 +151,7 @@ public class MQTTinterface extends Thread {
                         MqttMessage msg = new MqttMessage();
                         msg.setQos(data.qos);
                         msg.setRetained(data.retain);
-                        msg.setPayload(data.data.getBytes());
+                        msg.setPayload(data.data);
 
                         //System.out.println("Publish " + data.topic + ": " + msg);
                         client.publish(data.topic, msg);
@@ -257,18 +257,30 @@ public class MQTTinterface extends Thread {
         msg.qos = 0;
         msg.topic = mqttConfig.topic + topic;
         msg.retain = retain;
+        msg.data = data.getBytes();
+
+        publishQueue.add(msg);
+        eventMutex.release();
+    }
+
+    // Publish binary payload (e.g. PNG image for HA MQTT camera)
+    public void publishBytes(String topic, byte[] data, boolean retain) {
+        MqttData msg = new MqttData();
+        msg.qos = 0;
+        msg.topic = mqttConfig.topic + topic;
+        msg.retain = retain;
         msg.data = data;
 
         publishQueue.add(msg);
         eventMutex.release();
     }
-    
+
     public void publishRaw(String topic, String data, boolean retain, int qos) {
         MqttData msg = new MqttData();
         msg.qos = qos;
         msg.topic = topic;
         msg.retain = retain;
-        msg.data = data;
+        msg.data = data.getBytes();
 
         publishQueue.add(msg);
         eventMutex.release();

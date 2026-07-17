@@ -51,7 +51,7 @@ public final class SerialCommunication {
     private List<ConnectionThread> connections = null;
     private List<ConfXmlObject.Device> devicesList = null;
     //private SerialProtocol protocol = null;
-    private final int poolInterval = 100; // 1 device cca 30 ms
+    private final int poolInterval = 30; // 1 device cca 30 ms
     private volatile boolean communicationActive = true;
     private SerialUpdater updater;
 
@@ -185,6 +185,10 @@ public final class SerialCommunication {
         private long end;
         private long maxDuration = 0;
         private long lastResponse;
+        // device we are currently waiting a reply from; only its (complete)
+        // response may signal msgReceived, otherwise a late frame from the
+        // previous slave would start the next poll early and collide on the bus
+        private volatile String awaitedDeviceId = null;
 
         ConnectionThread(String connectionName, String portName, int baudRate) {
             Thread.currentThread().setName("ConnectionThread " + portName);
@@ -223,6 +227,7 @@ public final class SerialCommunication {
             for (String device : devicesName) {
                 if (!shouldRun) break;
 
+                awaitedDeviceId = device;
                 connectionDataSend(DeviceInterface.getInstance().getSendSerialData(device));
 
                 // wait for reply
@@ -234,12 +239,13 @@ public final class SerialCommunication {
                 } finally {
                     lock.unlock();
                 }
+                awaitedDeviceId = null;
 
                 if (!shouldRun) break;
 
-                // sleep
+                // RS-485 turnaround guard between polls
                 try {
-                    Thread.sleep(15);
+                    Thread.sleep(5);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
@@ -250,19 +256,35 @@ public final class SerialCommunication {
 
             //System.out.println(java.time.LocalDateTime.now() + " RX " + portName + ":" + data);
             lastResponse = Instant.now().toEpochMilli();
-            
+
             //protocol.protocolParseReceivedData(connectionName, data);
             boolean lastMsg = DeviceInterface.getInstance().parseIncomingSerialData(data);
             updater.parseSerialMsg(portName, data);
-            
-            //if(lastMsg) {
+
+            // Continue polling only when the awaited device sent its complete
+            // response (lastMsg=false for multi-part messages with cont:1 and
+            // for CRC failures). Frames from other devices never signal.
+            if (lastMsg && deviceIdMatches(data, awaitedDeviceId)) {
                 lock.lock();
                 try {
                     msgReceived.signal();
                 } finally {
                     lock.unlock();
                 }
-            //}
+            }
+        }
+
+        private boolean deviceIdMatches(String data, String expectedId) {
+            if (expectedId == null) {
+                return false;
+            }
+            String trimmed = data.trim();
+            if (!trimmed.startsWith("id:")) {
+                return false;
+            }
+            int comma = trimmed.indexOf(',');
+            String rxId = (comma > 3) ? trimmed.substring(3, comma) : trimmed.substring(3);
+            return rxId.equals(expectedId);
         }
 
         private void connectionDataSend(String data) {
@@ -278,6 +300,8 @@ public final class SerialCommunication {
         }
 
         public void connectionConnect() {
+            // Zastavené vlákno už se nesmí připojit - port by zůstal otevřený
+            if (!shouldRun) return;
             serialCon.connect(portName, baudRate);
         }
 
@@ -308,7 +332,10 @@ public final class SerialCommunication {
                     //ControlEngine.ControlEngine.getInstance().allDevicesPoolled(connectionName);
 
                     // check if is response - reconect
-                    if ((lastResponse + 3000) < Instant.now().toEpochMilli()) {
+                    // shouldRun check: stopThread() zavřel port a bez ní by ho
+                    // reconnect znovu otevřel a nechal viset (autodetect by pak
+                    // port nemohl otevřít)
+                    if (shouldRun && (lastResponse + 3000) < Instant.now().toEpochMilli()) {
                         connectionDisconnect();
                         connectionConnect();
                         System.out.println(java.time.LocalDateTime.now() + " No response from devices - reconnect connection " + portName + " " + connectionName);

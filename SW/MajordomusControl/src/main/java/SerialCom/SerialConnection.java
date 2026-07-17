@@ -59,9 +59,15 @@ public abstract class SerialConnection {
     public void connect(String portDescriptor, int baudRate) {
         serialPort = SerialPort.getCommPort(portDescriptor);
         serialPort.setBaudRate(baudRate);
-        serialPort.openPort();
+        if (!serialPort.openPort()) {
+            System.err.println("Serial: cannot open " + portDescriptor
+                    + " (jSerialComm error " + serialPort.getLastErrorCode()
+                    + " at line " + serialPort.getLastErrorLocation() + ")");
+        }
         //serialPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 0, 0);
         portName = portDescriptor;
+
+        setUsbSerialLowLatency(portDescriptor);
 
         //rxStream = serialPort.getInputStream();
         MessageListener listener = new MessageListener();
@@ -88,7 +94,35 @@ public abstract class SerialConnection {
         //lineScanner.close();
         //readTimer.cancel();
         //readTimer.purge();
-        serialPort.closePort();
+        if (serialPort != null) {
+            serialPort.closePort();
+        }
+    }
+
+    /**
+     * FTDI (and compatible) USB-serial adapters buffer received bytes for
+     * "latency timer" milliseconds (default 16 ms) before passing them to the
+     * host, which adds up to 16 ms to every poll response. On Linux the timer
+     * is exposed via sysfs — set it to 1 ms. Silently ignored on other
+     * platforms or when the sysfs entry does not exist / is not writable
+     * (on Windows set "Latency Timer" in the FTDI driver properties instead).
+     */
+    private void setUsbSerialLowLatency(String portDescriptor) {
+        String ttyName = portDescriptor.substring(portDescriptor.lastIndexOf('/') + 1);
+        java.nio.file.Path latencyFile = java.nio.file.Paths.get(
+                "/sys/bus/usb-serial/devices/" + ttyName + "/latency_timer");
+
+        if (!java.nio.file.Files.exists(latencyFile)) {
+            return;
+        }
+
+        try {
+            java.nio.file.Files.writeString(latencyFile, "1");
+            System.out.println("Serial " + ttyName + ": latency_timer set to 1 ms");
+        } catch (Exception e) {
+            System.out.println("Serial " + ttyName + ": cannot set latency_timer (" +
+                    e.getMessage() + ") — consider: echo 1 > " + latencyFile);
+        }
     }
     
     public String getPortName()

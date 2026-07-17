@@ -115,16 +115,17 @@ public class Configuration {
         catch(FileNotFoundException  e) { e.printStackTrace();}
     }
     
-    public void saveToFile()
+    // Throws on failure so REST handlers return an error instead of a false
+    // "saved successfully" while config.xml stays untouched.
+    public synchronized void saveToFile()
     {
         try {
             m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-            // Write to System.out DEBUG ONLY
-            // TODO
-            m.marshal(configXMLObject, System.out);
-            // Write to File
             m.marshal(configXMLObject, new File(CONFIG_XML_PATH));
         }
-        catch(JAXBException e ){} 
-    }   
+        catch(JAXBException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to save configuration to " + CONFIG_XML_PATH, e);
+        }
+    }
 }
