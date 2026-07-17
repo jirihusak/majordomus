@@ -1,0 +1,1963 @@
+
+<!doctype html>
+<html lang="cs" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Open-source smart home system">
+      
+      
+      
+        <link rel="canonical" href="https://jirihusak.github.io/majordomus/cs/dev-rs485-protocol/">
+      
+      
+        <link rel="prev" href="../dev-mqtt-protocol/">
+      
+      
+        <link rel="next" href="../troubleshooting/">
+      
+      
+        
+          <link rel="alternate" href="/majordomus/cs/" hreflang="cs">
+        
+          <link rel="alternate" href="/majordomus/en/" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Protokol RS-485 - Dokumentace a návody</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#protokol-rs-485" class="md-skip">
+          Přeskočit obsah
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Záhlaví">
+    <a href="../.." title="Dokumentace a návody" class="md-header__button md-logo" aria-label="Dokumentace a návody" data-md-component="logo">
+      
+  <img src="../../assets/logoWhite.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Dokumentace a návody
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Protokol RS-485
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="indigo"  aria-label="Tmavý režim"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Tmavý režim" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="indigo"  aria-label="Světlý režim"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Světlý režim" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Zvolte jazyk">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="/majordomus/cs/" hreflang="cs" class="md-select__link">
+              Česky
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="/majordomus/en/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Hledat" placeholder="Hledat" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Vyhledávání">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Vyčistit" aria-label="Vyčistit" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializace vyhledávání
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigace" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Dokumentace a návody" class="md-nav__button md-logo" aria-label="Dokumentace a návody" data-md-component="logo">
+      
+  <img src="../../assets/logoWhite.png" alt="logo">
+
+    </a>
+    Dokumentace a návody
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Začínáme
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Začínáme
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Úvod
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../why-majordomus/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Proč Majordomus
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../price-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cenové srovnání
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Hardware
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Co potřebuji pro start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../topology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Topologie
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hw-roomsensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RoomSensor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hw-roomio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RoomIO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hw-boxio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BoxIO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hw-rs485-usb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Převodník RS485 2 USB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home Assistant
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Home Assistant
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ha-introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Co je Home Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ha-installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ha-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Konfigurace Home Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Majordomus Control
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Majordomus Control
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architektura SW
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw-installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalace SW
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Konfigurace SW
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fw-update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aktualizace firmware
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Node-RED
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Node-RED
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw-node-red/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Co je Node-RED
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pro vývojáře
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Pro vývojáře
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev-mqtt-protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MQTT protokol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protokol RS-485
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protokol RS-485
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Obsah">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Obsah
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#parametry-seriove-linky" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parametry sériové linky
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ascii-protokol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ASCII protokol
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ASCII protokol">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#format-zpravy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Formát zprávy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priklady" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Příklady
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zprava-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zpráva status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zprava-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zpráva config
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zprava-data-roomio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zpráva data — RoomIO
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zprava-data-roomsensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zpráva data — RoomSensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zprava-data-tinysensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zpráva data — TinySensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vypocet-crc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Výpočet CRC
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modbus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modbus
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Modbus">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#registry-roomsensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registry — RoomSensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Řešení problémů
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="protokol-rs-485">Protokol RS-485</h1>
+<p>Referenční popis komunikace mezi jednotkami Majordomus a řídícím počítačem po sběrnici RS-485. Jednotky podporují dva protokoly:</p>
+<ul>
+<li><strong>ASCII protokol</strong> — nativní protokol systému Majordomus, používá ho Majordomus Control</li>
+<li><strong>Modbus RTU</strong> — standardní průmyslový protokol pro integraci s PLC a SCADA systémy</li>
+</ul>
+<p>Anglické originály: <a href="https://github.com/jirihusak/majordomus/blob/main/HW/Protocol%20Majordomus%20Rs-485%20ASCII.md">ASCII protokol</a> · <a href="https://github.com/jirihusak/majordomus/blob/main/HW/Protocol%20Majordomus%20Modbus.md">Modbus</a></p>
+<hr />
+<h2 id="parametry-seriove-linky">Parametry sériové linky</h2>
+<table>
+<thead>
+<tr>
+<th>Parametr</th>
+<th>Hodnota</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rychlost</td>
+<td>115 200 bps</td>
+</tr>
+<tr>
+<td>Datové bity</td>
+<td>8</td>
+</tr>
+<tr>
+<td>Stop bity</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Parita</td>
+<td>žádná</td>
+</tr>
+</tbody>
+</table>
+<p>Na sběrnici je jeden <strong>master</strong> (řídící počítač) — jednotky nikdy nevysílají samy od sebe, pouze odpovídají na dotaz. Každé zařízení má textové <code>id</code> o maximální délce 32 znaků.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    Master-&gt;&gt;Zařízení A: id:A,msg:data,crc:XX
+    Zařízení A--&gt;&gt;Master: id:A,msg:data,crc:XX
+    Master-&gt;&gt;Zařízení B: id:B,msg:data,crc:XX
+    Zařízení B--&gt;&gt;Master: id:B,msg:data,crc:XX</code></pre>
+<hr />
+<h2 id="ascii-protokol">ASCII protokol</h2>
+<h3 id="format-zpravy">Formát zprávy</h3>
+<ul>
+<li>Zpráva začíná <code>id:&lt;název_zařízení&gt;</code>.</li>
+<li>Končí znaky <code>CR LF</code>.</li>
+<li>Vlastnosti jsou odděleny čárkou, každá má formát <code>klíč:hodnota</code>.</li>
+<li>Poslední vlastností je vždy <code>crc</code> — <a href="#vypocet-crc">výpočet níže</a>.</li>
+</ul>
+<h3 id="priklady">Příklady</h3>
+<p><strong>Čtení stavu zařízení</strong> (verze FW, napájecí napětí):</p>
+<div class="highlight"><pre><span></span><code>→  id:test,msg:status,crc:8b\r\n
+←  id:test,type:RoomSens,version:0.3(Nov  2 2024),pwr:12.05,pwrOut:12.11,crc:f0
+</code></pre></div>
+<p><strong>Čtení dat:</strong></p>
+<div class="highlight"><pre><span></span><code>→  id:test,msg:data,crc:ea
+←  id:test,di:0,btn:0,t:210,t2:211,rh:540,mo:0,voc:95,lux:569,nl:278,adc0:0.00,adc1:0.00,crc:22
+</code></pre></div>
+<p><strong>Čtení a zápis v jedné zprávě</strong> (digitální výstupy, DAC, přísvit, žádaná teplota):</p>
+<div class="highlight"><pre><span></span><code>→  id:test,msg:data,do:3,dac0:5.4,dac1:1.2,light:1,reqT:225,crc:93
+←  id:test,di:0,btn:0,t:210,t2:211,rh:540,mo:0,voc:95,lux:569,nl:278,adc0:0.00,adc1:0.00,crc:22
+</code></pre></div>
+<p><strong>Změna id zařízení:</strong></p>
+<div class="highlight"><pre><span></span><code>→  id:test,msg:config,newId:test2,crc:ea
+</code></pre></div>
+<p><strong>Restart zařízení:</strong></p>
+<div class="highlight"><pre><span></span><code>→  id:test,msg:config,cmd:reset,crc:07
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Neznám id zařízení</p>
+<p>Místo názvu zařízení lze použít <code>all</code> — zprávu pak zpracují všechna zařízení na sběrnici. Aby nedošlo ke kolizi, každé zařízení před odpovědí čeká náhodnou dobu. Pro běžný provoz se to nedoporučuje, hodí se pro prvotní zjištění zařízení na lince.</p>
+</div>
+<h3 id="zprava-status">Zpráva <code>status</code></h3>
+<div class="highlight"><pre><span></span><code>id:&lt;zařízení&gt;,msg:status,...
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Odpověď</th>
+<th>Význam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td>Typ zařízení (např. <code>RoomSens</code>)</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>Verze FW: <code>X.Y (datum sestavení)</code></td>
+</tr>
+<tr>
+<td><code>pwr</code></td>
+<td>Napájecí napětí ve voltech</td>
+</tr>
+<tr>
+<td><code>pwrOut</code></td>
+<td>Napájecí napětí za pojistkou vstupů/výstupů</td>
+</tr>
+</tbody>
+</table>
+<h3 id="zprava-config">Zpráva <code>config</code></h3>
+<div class="highlight"><pre><span></span><code>id:&lt;zařízení&gt;,msg:config,...
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Klíč</th>
+<th>Význam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>newId</code></td>
+<td>Změna id na nový řetězec (max. 32 znaků)</td>
+</tr>
+<tr>
+<td><code>newId5050</code></td>
+<td>Jako <code>newId</code>, ale zařízení příkaz provede s pravděpodobností 50 % — řeší situaci, kdy mají dvě zařízení na sběrnici stejné id</td>
+</tr>
+<tr>
+<td><code>cmd:reset</code></td>
+<td>Restart zařízení</td>
+</tr>
+</tbody>
+</table>
+<h3 id="zprava-data-roomio">Zpráva <code>data</code> — RoomIO</h3>
+<table>
+<thead>
+<tr>
+<th>Ze zařízení</th>
+<th>Význam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>adc0</code>, <code>adc1</code></td>
+<td>Napětí analogových vstupů</td>
+</tr>
+<tr>
+<td><code>di</code></td>
+<td>Bitové pole digitálních vstupů</td>
+</tr>
+<tr>
+<td><code>btn</code></td>
+<td>Bitové pole tlačítek — posílá se jednou při náběžné hraně</td>
+</tr>
+<tr>
+<td><code>t0</code>, <code>t1</code></td>
+<td>Teploty z 1-Wire senzorů (°C)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Do zařízení</th>
+<th>Význam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dac0</code>, <code>dac1</code></td>
+<td>Nastavení analogových výstupů</td>
+</tr>
+<tr>
+<td><code>do</code></td>
+<td>Bitové pole digitálních výstupů (bit 0 = výstup 0, ...)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="zprava-data-roomsensor">Zpráva <code>data</code> — RoomSensor</h3>
+<table>
+<thead>
+<tr>
+<th>Ze zařízení</th>
+<th>Význam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>adc0</code>, <code>adc1</code></td>
+<td>Napětí analogových vstupů</td>
+</tr>
+<tr>
+<td><code>di</code></td>
+<td>Bitové pole digitálních vstupů</td>
+</tr>
+<tr>
+<td><code>btn</code></td>
+<td>Bitové pole tlačítek — posílá se jednou při náběžné hraně</td>
+</tr>
+<tr>
+<td><code>t0</code></td>
+<td>Teplota z předního krytu (°C)</td>
+</tr>
+<tr>
+<td><code>t1</code></td>
+<td>Teplota ze senzoru vlhkosti (°C)</td>
+</tr>
+<tr>
+<td><code>t2</code>, <code>t3</code></td>
+<td>Teploty z 1-Wire senzorů (°C)</td>
+</tr>
+<tr>
+<td><code>rh</code></td>
+<td>Relativní vlhkost (%)</td>
+</tr>
+<tr>
+<td><code>mo</code></td>
+<td>PIR detektor pohybu (<code>0</code>/<code>1</code>)</td>
+</tr>
+<tr>
+<td><code>voc</code></td>
+<td>Kvalita vzduchu VOC (0–500)</td>
+</tr>
+<tr>
+<td><code>lux</code></td>
+<td>Intenzita osvětlení (lux)</td>
+</tr>
+<tr>
+<td><code>nl</code></td>
+<td>Hladina hluku (dB)</td>
+</tr>
+<tr>
+<td><code>newReqT</code></td>
+<td>Nová žádaná teplota zadaná uživatelem na displeji — posílá se jednou při potvrzení</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Do zařízení</th>
+<th>Význam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dac0</code>, <code>dac1</code></td>
+<td>Nastavení analogových výstupů</td>
+</tr>
+<tr>
+<td><code>do</code></td>
+<td>Bitové pole digitálních výstupů</td>
+</tr>
+<tr>
+<td><code>reqT</code></td>
+<td>Žádaná teplota zobrazená na LCD</td>
+</tr>
+<tr>
+<td><code>beep</code></td>
+<td>Spuštění pípání (0–4)</td>
+</tr>
+<tr>
+<td><code>light</code></td>
+<td>Ovládání LED přísvitu (<code>0</code>/<code>1</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="zprava-data-tinysensor">Zpráva <code>data</code> — TinySensor</h3>
+<table>
+<thead>
+<tr>
+<th>Ze zařízení</th>
+<th>Význam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>di</code></td>
+<td>Bitové pole digitálních vstupů</td>
+</tr>
+<tr>
+<td><code>btn</code></td>
+<td>Bitové pole tlačítek</td>
+</tr>
+<tr>
+<td><code>t0</code></td>
+<td>Teplota (°C)</td>
+</tr>
+<tr>
+<td><code>rh</code></td>
+<td>Relativní vlhkost (%)</td>
+</tr>
+<tr>
+<td><code>t1</code>, <code>t2</code></td>
+<td>Teploty z 1-Wire senzorů (°C)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Do zařízení</th>
+<th>Význam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>do</code></td>
+<td>Bitové pole digitálních výstupů</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Formát číselných hodnot</p>
+<p>Teploty a vlhkost se po sběrnici posílají jako celá čísla ×10 — např. <code>t:210</code> znamená 21,0 °C, <code>rh:540</code> znamená 54,0 %.</p>
+</div>
+<h3 id="vypocet-crc">Výpočet CRC</h3>
+<p>Kontrolní součet je CRC-8 počítaný tabulkou z celé zprávy před vlastností <code>crc</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">crc8_table</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="mh">0xea</span><span class="p">,</span><span class="w"> </span><span class="mh">0xd4</span><span class="p">,</span><span class="w"> </span><span class="mh">0x96</span><span class="p">,</span><span class="w"> </span><span class="mh">0xa8</span><span class="p">,</span><span class="w"> </span><span class="mh">0x12</span><span class="p">,</span><span class="w"> </span><span class="mh">0x2c</span><span class="p">,</span><span class="w"> </span><span class="mh">0x6e</span><span class="p">,</span><span class="w"> </span><span class="mh">0x50</span><span class="p">,</span><span class="w"> </span><span class="mh">0x7f</span><span class="p">,</span><span class="w"> </span><span class="mh">0x41</span><span class="p">,</span><span class="w"> </span><span class="mh">0x03</span><span class="p">,</span><span class="w"> </span><span class="mh">0x3d</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x87</span><span class="p">,</span><span class="w"> </span><span class="mh">0xb9</span><span class="p">,</span><span class="w"> </span><span class="mh">0xfb</span><span class="p">,</span><span class="w"> </span><span class="mh">0xc5</span><span class="p">,</span><span class="w"> </span><span class="mh">0xa5</span><span class="p">,</span><span class="w"> </span><span class="mh">0x9b</span><span class="p">,</span><span class="w"> </span><span class="mh">0xd9</span><span class="p">,</span><span class="w"> </span><span class="mh">0xe7</span><span class="p">,</span><span class="w"> </span><span class="mh">0x5d</span><span class="p">,</span><span class="w"> </span><span class="mh">0x63</span><span class="p">,</span><span class="w"> </span><span class="mh">0x21</span><span class="p">,</span><span class="w"> </span><span class="mh">0x1f</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x30</span><span class="p">,</span><span class="w"> </span><span class="mh">0x0e</span><span class="p">,</span><span class="w"> </span><span class="mh">0x4c</span><span class="p">,</span><span class="w"> </span><span class="mh">0x72</span><span class="p">,</span><span class="w"> </span><span class="mh">0xc8</span><span class="p">,</span><span class="w"> </span><span class="mh">0xf6</span><span class="p">,</span><span class="w"> </span><span class="mh">0xb4</span><span class="p">,</span><span class="w"> </span><span class="mh">0x8a</span><span class="p">,</span><span class="w"> </span><span class="mh">0x74</span><span class="p">,</span><span class="w"> </span><span class="mh">0x4a</span><span class="p">,</span><span class="w"> </span><span class="mh">0x08</span><span class="p">,</span><span class="w"> </span><span class="mh">0x36</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x8c</span><span class="p">,</span><span class="w"> </span><span class="mh">0xb2</span><span class="p">,</span><span class="w"> </span><span class="mh">0xf0</span><span class="p">,</span><span class="w"> </span><span class="mh">0xce</span><span class="p">,</span><span class="w"> </span><span class="mh">0xe1</span><span class="p">,</span><span class="w"> </span><span class="mh">0xdf</span><span class="p">,</span><span class="w"> </span><span class="mh">0x9d</span><span class="p">,</span><span class="w"> </span><span class="mh">0xa3</span><span class="p">,</span><span class="w"> </span><span class="mh">0x19</span><span class="p">,</span><span class="w"> </span><span class="mh">0x27</span><span class="p">,</span><span class="w"> </span><span class="mh">0x65</span><span class="p">,</span><span class="w"> </span><span class="mh">0x5b</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x3b</span><span class="p">,</span><span class="w"> </span><span class="mh">0x05</span><span class="p">,</span><span class="w"> </span><span class="mh">0x47</span><span class="p">,</span><span class="w"> </span><span class="mh">0x79</span><span class="p">,</span><span class="w"> </span><span class="mh">0xc3</span><span class="p">,</span><span class="w"> </span><span class="mh">0xfd</span><span class="p">,</span><span class="w"> </span><span class="mh">0xbf</span><span class="p">,</span><span class="w"> </span><span class="mh">0x81</span><span class="p">,</span><span class="w"> </span><span class="mh">0xae</span><span class="p">,</span><span class="w"> </span><span class="mh">0x90</span><span class="p">,</span><span class="w"> </span><span class="mh">0xd2</span><span class="p">,</span><span class="w"> </span><span class="mh">0xec</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x56</span><span class="p">,</span><span class="w"> </span><span class="mh">0x68</span><span class="p">,</span><span class="w"> </span><span class="mh">0x2a</span><span class="p">,</span><span class="w"> </span><span class="mh">0x14</span><span class="p">,</span><span class="w"> </span><span class="mh">0xb3</span><span class="p">,</span><span class="w"> </span><span class="mh">0x8d</span><span class="p">,</span><span class="w"> </span><span class="mh">0xcf</span><span class="p">,</span><span class="w"> </span><span class="mh">0xf1</span><span class="p">,</span><span class="w"> </span><span class="mh">0x4b</span><span class="p">,</span><span class="w"> </span><span class="mh">0x75</span><span class="p">,</span><span class="w"> </span><span class="mh">0x37</span><span class="p">,</span><span class="w"> </span><span class="mh">0x09</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x26</span><span class="p">,</span><span class="w"> </span><span class="mh">0x18</span><span class="p">,</span><span class="w"> </span><span class="mh">0x5a</span><span class="p">,</span><span class="w"> </span><span class="mh">0x64</span><span class="p">,</span><span class="w"> </span><span class="mh">0xde</span><span class="p">,</span><span class="w"> </span><span class="mh">0xe0</span><span class="p">,</span><span class="w"> </span><span class="mh">0xa2</span><span class="p">,</span><span class="w"> </span><span class="mh">0x9c</span><span class="p">,</span><span class="w"> </span><span class="mh">0xfc</span><span class="p">,</span><span class="w"> </span><span class="mh">0xc2</span><span class="p">,</span><span class="w"> </span><span class="mh">0x80</span><span class="p">,</span><span class="w"> </span><span class="mh">0xbe</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x04</span><span class="p">,</span><span class="w"> </span><span class="mh">0x3a</span><span class="p">,</span><span class="w"> </span><span class="mh">0x78</span><span class="p">,</span><span class="w"> </span><span class="mh">0x46</span><span class="p">,</span><span class="w"> </span><span class="mh">0x69</span><span class="p">,</span><span class="w"> </span><span class="mh">0x57</span><span class="p">,</span><span class="w"> </span><span class="mh">0x15</span><span class="p">,</span><span class="w"> </span><span class="mh">0x2b</span><span class="p">,</span><span class="w"> </span><span class="mh">0x91</span><span class="p">,</span><span class="w"> </span><span class="mh">0xaf</span><span class="p">,</span><span class="w"> </span><span class="mh">0xed</span><span class="p">,</span><span class="w"> </span><span class="mh">0xd3</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x2d</span><span class="p">,</span><span class="w"> </span><span class="mh">0x13</span><span class="p">,</span><span class="w"> </span><span class="mh">0x51</span><span class="p">,</span><span class="w"> </span><span class="mh">0x6f</span><span class="p">,</span><span class="w"> </span><span class="mh">0xd5</span><span class="p">,</span><span class="w"> </span><span class="mh">0xeb</span><span class="p">,</span><span class="w"> </span><span class="mh">0xa9</span><span class="p">,</span><span class="w"> </span><span class="mh">0x97</span><span class="p">,</span><span class="w"> </span><span class="mh">0xb8</span><span class="p">,</span><span class="w"> </span><span class="mh">0x86</span><span class="p">,</span><span class="w"> </span><span class="mh">0xc4</span><span class="p">,</span><span class="w"> </span><span class="mh">0xfa</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x40</span><span class="p">,</span><span class="w"> </span><span class="mh">0x7e</span><span class="p">,</span><span class="w"> </span><span class="mh">0x3c</span><span class="p">,</span><span class="w"> </span><span class="mh">0x02</span><span class="p">,</span><span class="w"> </span><span class="mh">0x62</span><span class="p">,</span><span class="w"> </span><span class="mh">0x5c</span><span class="p">,</span><span class="w"> </span><span class="mh">0x1e</span><span class="p">,</span><span class="w"> </span><span class="mh">0x20</span><span class="p">,</span><span class="w"> </span><span class="mh">0x9a</span><span class="p">,</span><span class="w"> </span><span class="mh">0xa4</span><span class="p">,</span><span class="w"> </span><span class="mh">0xe6</span><span class="p">,</span><span class="w"> </span><span class="mh">0xd8</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0xf7</span><span class="p">,</span><span class="w"> </span><span class="mh">0xc9</span><span class="p">,</span><span class="w"> </span><span class="mh">0x8b</span><span class="p">,</span><span class="w"> </span><span class="mh">0xb5</span><span class="p">,</span><span class="w"> </span><span class="mh">0x0f</span><span class="p">,</span><span class="w"> </span><span class="mh">0x31</span><span class="p">,</span><span class="w"> </span><span class="mh">0x73</span><span class="p">,</span><span class="w"> </span><span class="mh">0x4d</span><span class="p">,</span><span class="w"> </span><span class="mh">0x58</span><span class="p">,</span><span class="w"> </span><span class="mh">0x66</span><span class="p">,</span><span class="w"> </span><span class="mh">0x24</span><span class="p">,</span><span class="w"> </span><span class="mh">0x1a</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0xa0</span><span class="p">,</span><span class="w"> </span><span class="mh">0x9e</span><span class="p">,</span><span class="w"> </span><span class="mh">0xdc</span><span class="p">,</span><span class="w"> </span><span class="mh">0xe2</span><span class="p">,</span><span class="w"> </span><span class="mh">0xcd</span><span class="p">,</span><span class="w"> </span><span class="mh">0xf3</span><span class="p">,</span><span class="w"> </span><span class="mh">0xb1</span><span class="p">,</span><span class="w"> </span><span class="mh">0x8f</span><span class="p">,</span><span class="w"> </span><span class="mh">0x35</span><span class="p">,</span><span class="w"> </span><span class="mh">0x0b</span><span class="p">,</span><span class="w"> </span><span class="mh">0x49</span><span class="p">,</span><span class="w"> </span><span class="mh">0x77</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x17</span><span class="p">,</span><span class="w"> </span><span class="mh">0x29</span><span class="p">,</span><span class="w"> </span><span class="mh">0x6b</span><span class="p">,</span><span class="w"> </span><span class="mh">0x55</span><span class="p">,</span><span class="w"> </span><span class="mh">0xef</span><span class="p">,</span><span class="w"> </span><span class="mh">0xd1</span><span class="p">,</span><span class="w"> </span><span class="mh">0x93</span><span class="p">,</span><span class="w"> </span><span class="mh">0xad</span><span class="p">,</span><span class="w"> </span><span class="mh">0x82</span><span class="p">,</span><span class="w"> </span><span class="mh">0xbc</span><span class="p">,</span><span class="w"> </span><span class="mh">0xfe</span><span class="p">,</span><span class="w"> </span><span class="mh">0xc0</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x7a</span><span class="p">,</span><span class="w"> </span><span class="mh">0x44</span><span class="p">,</span><span class="w"> </span><span class="mh">0x06</span><span class="p">,</span><span class="w"> </span><span class="mh">0x38</span><span class="p">,</span><span class="w"> </span><span class="mh">0xc6</span><span class="p">,</span><span class="w"> </span><span class="mh">0xf8</span><span class="p">,</span><span class="w"> </span><span class="mh">0xba</span><span class="p">,</span><span class="w"> </span><span class="mh">0x84</span><span class="p">,</span><span class="w"> </span><span class="mh">0x3e</span><span class="p">,</span><span class="w"> </span><span class="mh">0x00</span><span class="p">,</span><span class="w"> </span><span class="mh">0x42</span><span class="p">,</span><span class="w"> </span><span class="mh">0x7c</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x53</span><span class="p">,</span><span class="w"> </span><span class="mh">0x6d</span><span class="p">,</span><span class="w"> </span><span class="mh">0x2f</span><span class="p">,</span><span class="w"> </span><span class="mh">0x11</span><span class="p">,</span><span class="w"> </span><span class="mh">0xab</span><span class="p">,</span><span class="w"> </span><span class="mh">0x95</span><span class="p">,</span><span class="w"> </span><span class="mh">0xd7</span><span class="p">,</span><span class="w"> </span><span class="mh">0xe9</span><span class="p">,</span><span class="w"> </span><span class="mh">0x89</span><span class="p">,</span><span class="w"> </span><span class="mh">0xb7</span><span class="p">,</span><span class="w"> </span><span class="mh">0xf5</span><span class="p">,</span><span class="w"> </span><span class="mh">0xcb</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x71</span><span class="p">,</span><span class="w"> </span><span class="mh">0x4f</span><span class="p">,</span><span class="w"> </span><span class="mh">0x0d</span><span class="p">,</span><span class="w"> </span><span class="mh">0x33</span><span class="p">,</span><span class="w"> </span><span class="mh">0x1c</span><span class="p">,</span><span class="w"> </span><span class="mh">0x22</span><span class="p">,</span><span class="w"> </span><span class="mh">0x60</span><span class="p">,</span><span class="w"> </span><span class="mh">0x5e</span><span class="p">,</span><span class="w"> </span><span class="mh">0xe4</span><span class="p">,</span><span class="w"> </span><span class="mh">0xda</span><span class="p">,</span><span class="w"> </span><span class="mh">0x98</span><span class="p">,</span><span class="w"> </span><span class="mh">0xa6</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x01</span><span class="p">,</span><span class="w"> </span><span class="mh">0x3f</span><span class="p">,</span><span class="w"> </span><span class="mh">0x7d</span><span class="p">,</span><span class="w"> </span><span class="mh">0x43</span><span class="p">,</span><span class="w"> </span><span class="mh">0xf9</span><span class="p">,</span><span class="w"> </span><span class="mh">0xc7</span><span class="p">,</span><span class="w"> </span><span class="mh">0x85</span><span class="p">,</span><span class="w"> </span><span class="mh">0xbb</span><span class="p">,</span><span class="w"> </span><span class="mh">0x94</span><span class="p">,</span><span class="w"> </span><span class="mh">0xaa</span><span class="p">,</span><span class="w"> </span><span class="mh">0xe8</span><span class="p">,</span><span class="w"> </span><span class="mh">0xd6</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x6c</span><span class="p">,</span><span class="w"> </span><span class="mh">0x52</span><span class="p">,</span><span class="w"> </span><span class="mh">0x10</span><span class="p">,</span><span class="w"> </span><span class="mh">0x2e</span><span class="p">,</span><span class="w"> </span><span class="mh">0x4e</span><span class="p">,</span><span class="w"> </span><span class="mh">0x70</span><span class="p">,</span><span class="w"> </span><span class="mh">0x32</span><span class="p">,</span><span class="w"> </span><span class="mh">0x0c</span><span class="p">,</span><span class="w"> </span><span class="mh">0xb6</span><span class="p">,</span><span class="w"> </span><span class="mh">0x88</span><span class="p">,</span><span class="w"> </span><span class="mh">0xca</span><span class="p">,</span><span class="w"> </span><span class="mh">0xf4</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0xdb</span><span class="p">,</span><span class="w"> </span><span class="mh">0xe5</span><span class="p">,</span><span class="w"> </span><span class="mh">0xa7</span><span class="p">,</span><span class="w"> </span><span class="mh">0x99</span><span class="p">,</span><span class="w"> </span><span class="mh">0x23</span><span class="p">,</span><span class="w"> </span><span class="mh">0x1d</span><span class="p">,</span><span class="w"> </span><span class="mh">0x5f</span><span class="p">,</span><span class="w"> </span><span class="mh">0x61</span><span class="p">,</span><span class="w"> </span><span class="mh">0x9f</span><span class="p">,</span><span class="w"> </span><span class="mh">0xa1</span><span class="p">,</span><span class="w"> </span><span class="mh">0xe3</span><span class="p">,</span><span class="w"> </span><span class="mh">0xdd</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0x67</span><span class="p">,</span><span class="w"> </span><span class="mh">0x59</span><span class="p">,</span><span class="w"> </span><span class="mh">0x1b</span><span class="p">,</span><span class="w"> </span><span class="mh">0x25</span><span class="p">,</span><span class="w"> </span><span class="mh">0x0a</span><span class="p">,</span><span class="w"> </span><span class="mh">0x34</span><span class="p">,</span><span class="w"> </span><span class="mh">0x76</span><span class="p">,</span><span class="w"> </span><span class="mh">0x48</span><span class="p">,</span><span class="w"> </span><span class="mh">0xf2</span><span class="p">,</span><span class="w"> </span><span class="mh">0xcc</span><span class="p">,</span><span class="w"> </span><span class="mh">0x8e</span><span class="p">,</span><span class="w"> </span><span class="mh">0xb0</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0xd0</span><span class="p">,</span><span class="w"> </span><span class="mh">0xee</span><span class="p">,</span><span class="w"> </span><span class="mh">0xac</span><span class="p">,</span><span class="w"> </span><span class="mh">0x92</span><span class="p">,</span><span class="w"> </span><span class="mh">0x28</span><span class="p">,</span><span class="w"> </span><span class="mh">0x16</span><span class="p">,</span><span class="w"> </span><span class="mh">0x54</span><span class="p">,</span><span class="w"> </span><span class="mh">0x6a</span><span class="p">,</span><span class="w"> </span><span class="mh">0x45</span><span class="p">,</span><span class="w"> </span><span class="mh">0x7b</span><span class="p">,</span><span class="w"> </span><span class="mh">0x39</span><span class="p">,</span><span class="w"> </span><span class="mh">0x07</span><span class="p">,</span>
+<span class="w">    </span><span class="mh">0xbd</span><span class="p">,</span><span class="w"> </span><span class="mh">0x83</span><span class="p">,</span><span class="w"> </span><span class="mh">0xc1</span><span class="p">,</span><span class="w"> </span><span class="mh">0xff</span><span class="p">};</span>
+
+<span class="kt">uint8_t</span><span class="w"> </span><span class="nf">crc8</span><span class="p">(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">seed</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">len</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">crc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seed</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">crc</span><span class="w"> </span><span class="o">&amp;=</span><span class="w"> </span><span class="mh">0xff</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="o">*</span><span class="n">end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">len</span><span class="p">;</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">data</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">end</span><span class="p">)</span>
+<span class="w">        </span><span class="n">crc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">crc8_table</span><span class="p">[</span><span class="n">crc</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="o">++</span><span class="p">];</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">crc</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="modbus">Modbus</h2>
+<p>Jednotky podporují i standardní protokol <strong>Modbus RTU</strong> se stejnými parametry sériové linky. Každé zařízení má Modbus adresu 1–247.</p>
+<h3 id="registry-roomsensor">Registry — RoomSensor</h3>
+<table>
+<thead>
+<tr>
+<th>Logická adresa</th>
+<th>Registr</th>
+<th>Přístup</th>
+<th>Velikost</th>
+<th>Typ</th>
+<th>Význam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x41001</td>
+<td>0x1000</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>INT16</td>
+<td>Teplota z předního krytu [×10 °C]</td>
+</tr>
+<tr>
+<td>0x41002</td>
+<td>0x1001</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>INT16</td>
+<td>Teplota ze senzoru vlhkosti [×10 °C]</td>
+</tr>
+<tr>
+<td>0x41003</td>
+<td>0x1002</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>Relativní vlhkost [×10 %]</td>
+</tr>
+<tr>
+<td>0x41004</td>
+<td>0x1003</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>INT16</td>
+<td>Teplota z 1-Wire senzoru 0 [×10 °C]</td>
+</tr>
+<tr>
+<td>0x41005</td>
+<td>0x1004</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>INT16</td>
+<td>Teplota z 1-Wire senzoru 1 [×10 °C]</td>
+</tr>
+<tr>
+<td>0x41006</td>
+<td>0x1005</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>Kvalita vzduchu VOC index [0–500]</td>
+</tr>
+<tr>
+<td>0x41007</td>
+<td>0x1006</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>CO₂ [ppm]</td>
+</tr>
+<tr>
+<td>0x41008</td>
+<td>0x1007</td>
+<td>čtení</td>
+<td>4 B</td>
+<td>UINT32</td>
+<td>Intenzita osvětlení [lux]</td>
+</tr>
+<tr>
+<td>0x4100A</td>
+<td>0x1009</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>Hladina hluku [dB]</td>
+</tr>
+<tr>
+<td>0x4100B</td>
+<td>0x100A</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>PIR detektor pohybu [0/1]</td>
+</tr>
+<tr>
+<td>0x4100C</td>
+<td>0x100B</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>Bitové pole digitálních vstupů</td>
+</tr>
+<tr>
+<td>0x4100D</td>
+<td>0x100C</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>Bitové pole tlačítek (náběžná hrana)</td>
+</tr>
+<tr>
+<td>0x4100E</td>
+<td>0x100D</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>ADC0 — napětí analogového vstupu [mV]</td>
+</tr>
+<tr>
+<td>0x4100F</td>
+<td>0x100E</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>ADC1 — napětí analogového vstupu [mV]</td>
+</tr>
+<tr>
+<td>0x41010</td>
+<td>0x100F</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>Napájecí napětí [mV]</td>
+</tr>
+<tr>
+<td>0x41011</td>
+<td>0x1010</td>
+<td>čtení</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>Napájecí napětí výstupů [mV]</td>
+</tr>
+<tr>
+<td>0x62001</td>
+<td>0x2000</td>
+<td>zápis</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>Bitové pole digitálních výstupů</td>
+</tr>
+<tr>
+<td>0x62002</td>
+<td>0x2001</td>
+<td>zápis</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>DAC0 — analogový výstup [mV]</td>
+</tr>
+<tr>
+<td>0x62003</td>
+<td>0x2002</td>
+<td>zápis</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>DAC1 — analogový výstup [mV]</td>
+</tr>
+<tr>
+<td>0x62004</td>
+<td>0x2003</td>
+<td>zápis</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>Pípák [0–4]</td>
+</tr>
+<tr>
+<td>0x62005</td>
+<td>0x2004</td>
+<td>zápis</td>
+<td>2 B</td>
+<td>UINT16</td>
+<td>LED přísvit [0/1]</td>
+</tr>
+<tr>
+<td>0x62006</td>
+<td>0x2005</td>
+<td>zápis</td>
+<td>2 B</td>
+<td>INT16</td>
+<td>Žádaná teplota na LCD [×10 °C]</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Zpět na začátek
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["search.suggest", "navigation.top", "toc.integrate", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Zkop\u00edrov\u00e1no do schr\u00e1nky", "clipboard.copy": "Kop\u00edrovat do schr\u00e1nky", "search.result.more.one": "1 dal\u0161\u00ed na t\u00e9to str\u00e1nce", "search.result.more.other": "# v\u00edce na t\u00e9to str\u00e1nce", "search.result.none": "Nenalezeny \u017e\u00e1dn\u00e9 dokumenty", "search.result.one": "Nalezen\u00fd dokument: 1", "search.result.other": "Nalezen\u00e9 dokumenty: #", "search.result.placeholder": "Pi\u0161te co se m\u00e1 vyhledat", "search.result.term.missing": "Chyb\u011bj\u00edc\u00ed", "select.version": "Vyberte verzi"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
