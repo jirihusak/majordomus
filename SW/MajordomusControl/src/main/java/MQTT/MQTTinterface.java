@@ -197,7 +197,7 @@ public class MQTTinterface extends Thread {
         options.setUserName(mqttConfig.username);
         options.setPassword(mqttConfig.passwd.toCharArray());
         options.setConnectionTimeout(30);
-        options.setKeepAliveInterval(5);
+        options.setKeepAliveInterval(30);
         options.setAutomaticReconnect(true);
 
         if (socketFactory != null) {
@@ -225,13 +225,10 @@ public class MQTTinterface extends Thread {
             @Override
             public void connectComplete(boolean bln, String string) {
                 System.out.println("MQTT connectComplete (reconnect=" + bln + ")");
-                try {
-                    client.subscribe(mqttConfig.topic + "#", 0);
-                    System.out.println("MQTT re-subscribed to: " + mqttConfig.topic + "#");
-                } catch (MqttException ex) {
-                    System.err.println("MQTT re-subscribe failed: " + ex.getMessage());
-                }
-                DeviceInterface.getInstance().publishHomeAssistantConfig();
+                // This callback runs on the Paho callback thread. Blocking calls (MqttClient.subscribe)
+                // must not be made here: the SUBACK is completed by this very thread -> deadlock,
+                // incoming messages pile up, keep-alive times out and nothing gets published.
+                new Thread(() -> onConnected(), "MQTT-onConnect").start();
             }
         });
 
@@ -239,11 +236,29 @@ public class MQTTinterface extends Thread {
         System.out.println("Connecting to MQTT broker at: " + mqttConfig.address);
         client.connect(options);
         System.out.println("Connected to MQTT broker successfully.");
+        // subscription + HA discovery are done in onConnected() (called from connectComplete,
+        // also for the first connection)
+    }
 
-        // Subscribe to the topic specified in the configuration
-        System.out.println("Subscribing to topic: " + mqttConfig.topic + "#");
-        client.subscribe(mqttConfig.topic + "#", 0);
-        System.out.println("MQTT Subscription successful.");
+    // Topic filter for incoming commands: <prefix>/<device>/cmd/<key>
+    // (subscribing to <prefix># would also deliver every message this gateway publishes itself)
+    private String cmdFilter() {
+        return mqttConfig.topic + "+/cmd/#";
+    }
+
+    // Runs in its own thread after every (re)connect
+    private void onConnected() {
+        try {
+            client.subscribe(cmdFilter(), 0);
+            System.out.println("MQTT subscribed to: " + cmdFilter());
+        } catch (MqttException ex) {
+            System.err.println("MQTT subscribe failed: " + ex.getMessage());
+        }
+        DeviceInterface.getInstance().publishHomeAssistantConfig();
+        for (String name : DeviceInterface.getInstance().getDeviceMap().keySet()) {
+            DeviceInterface.getInstance().getDeviceByName(name).publishAvailability();
+        }
+        System.out.println("MQTT HA discovery and availability published");
     }
 
     // Method to check if the MQTT client is connected

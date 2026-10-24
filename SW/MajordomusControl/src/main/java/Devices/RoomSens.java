@@ -92,7 +92,8 @@ public class RoomSens extends DeviceGeneric {
                 }
 
                 // --- evt: events (not retained) ---
-                case "mo"  -> infFromDevice("evt", "motion", key, Integer.parseInt(data), false);
+                // motion is a state: publish on change only (retained), not on every poll
+                case "mo"  -> infFromDevice("evt", "motion", key, Integer.parseInt(data), true);
                 case "btn" -> {
                     parsedData = Integer.parseInt(data);
                     for (int i = 0; i < 4; i++) {
