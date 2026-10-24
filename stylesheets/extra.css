@@ -1,0 +1,82 @@
+/* Trojúhelníkové šipky u rozbalitelných sekcí */
+.md-nav__item--nested > .md-nav__link::after {
+  content: "▶";
+  font-size: 0.6rem;
+  position: absolute;
+  left: 0;
+  transition: transform 0.2s;
+}
+
+.md-nav__item--nested .md-nav__item--nested > .md-nav__link::after {
+  content: "▶";
+}
+
+/* Otočení šipky u rozbalené sekce */
+.md-nav__item--active > .md-nav__link::after {
+  transform: rotate(90deg);
+}
+
+/* Větší odsazení zanořených úrovní */
+.md-nav--secondary .md-nav__list {
+  padding-left: 1.2rem;
+}
+
+.md-nav__item .md-nav__list {
+  padding-left: 1.2rem;
+}
+
+/* Názvy sekcí (1. úroveň) - tučné, barevné */
+.md-nav__item--nested > .md-nav__link {
+  font-weight: 700;
+  color: var(--md-accent-fg-color);
+  padding-left: 1.2rem;
+  position: relative;
+}
+
+/* Aktivní stránka - tučně */
+.md-nav__link--active {
+  font-weight: 700;
+}
+
+/* Větší mezery mezi sekcemi */
+.md-nav__item--nested {
+  margin-top: 0.6em;
+}
+
+/* Podsekce (h2, h3 na stránce) - menší písmo */
+.md-nav--secondary .md-nav__link {
+  font-size: 0.75rem;
+  color: var(--md-default-fg-color--light);
+}
+
+/* Vertikální čára u zanořených položek */
+.md-nav__item--nested > .md-nav {
+  border-left: 1px solid var(--md-default-fg-color--lightest);
+  margin-left: 0.4rem;
+}
+
+/* Všechny sekce šedě */
+.md-nav__link {
+  color: var(--md-default-fg-color--light) !important;
+}
+
+/* Aktivní sekce a stránka - barva banneru */
+.md-nav__item--active > .md-nav__link,
+.md-nav__link--active {
+  color: var(--md-primary-fg-color) !important;
+  font-weight: 700;
+}
+
+/* Linka vlevo u aktivní sekce */
+.md-nav__item--active > .md-nav {
+  border-left: 2px solid var(--md-primary-fg-color);
+  margin-left: 0.5rem;
+  padding-left: 0.5rem;
+  margin-bottom: 0.1rem;
+  margin-top: 0.1rem;
+}
+
+/* Skrýt site name v sidebaru */
+.md-nav--primary > .md-nav__title {
+  display: none;
+}
